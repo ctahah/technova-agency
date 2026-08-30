@@ -381,7 +381,6 @@ const apiLimiter = rateLimit({
 });
 
 app.use('/api/admin/login', loginLimiter);
-app.use('/api/inquiries', inquiryLimiter);
 app.use('/api/admin/upload-image', uploadLimiter);
 app.use('/api', apiLimiter);
 
@@ -2100,15 +2099,96 @@ app.delete('/api/admin/review/:id', authenticateToken, validateIdParam, async (r
   }
 });
 
-// Inquiries / Leads Routes
+// Inquiries / Leads Storage & Handlers
+let fallbackInquiries = [];
+
 const getLeadsHandler = async (req, res) => {
   try {
     if (mongoose.connection.readyState === 1) {
-      const leads = await Inquiry.find().sort({ date: -1 });
-      return res.json({ success: true, leads, inquiries: leads });
+      const leads = await Inquiry.find().sort({ date: -1, createdAt: -1 }).lean().maxTimeMS(5000);
+      console.log(`📋 [Admin Leads API] Admin retrieved ${leads.length} leads from MongoDB Atlas (Model: Inquiry, Collection: inquiries)`);
+      return res.json({ success: true, leads, inquiries: leads, data: leads });
     }
-    res.json({ success: true, leads: [], inquiries: [] });
+    console.log(`📋 [Admin Leads API] Admin retrieved ${fallbackInquiries.length} leads from fallback store`);
+    res.json({ success: true, leads: fallbackInquiries, inquiries: fallbackInquiries, data: fallbackInquiries });
   } catch (err) {
+    console.error('❌ [Admin Leads API] Failed to fetch leads:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+const inquirySubmitHandler = async (req, res) => {
+  try {
+    const { name, email, phone, whatsapp, service, projectType, message, details, budget } = req.body;
+    const cleanName = sanitizeText(name || '', 100);
+    const cleanEmail = sanitizeText(email || '', 100);
+    const cleanPhone = sanitizeText(phone || whatsapp || '', 30);
+    const cleanService = sanitizeText(service || projectType || '', 100);
+    const cleanMessage = sanitizeText(message || details || '', 3000);
+    const cleanBudget = sanitizeText(budget || '', 50);
+
+    if (!cleanName && !cleanEmail && !cleanMessage) {
+      console.warn('⚠️ [Leads API] Submission rejected: Missing required contact fields.');
+      return res.status(400).json({ success: false, message: 'Name, email, or message is required' });
+    }
+
+    const inquiryData = {
+      name: cleanName,
+      email: cleanEmail,
+      phone: cleanPhone,
+      service: cleanService,
+      message: cleanMessage,
+      budget: cleanBudget,
+      status: 'new',
+      date: new Date()
+    };
+
+    console.log(`📥 [Leads API] Received contact form submission from: "${cleanName || 'Visitor'}" (${cleanEmail || 'No email'})`);
+
+    if (mongoose.connection.readyState === 1) {
+      const inquiry = new Inquiry(inquiryData);
+      const savedLead = await inquiry.save();
+      console.log(`✅ [Leads API] Successfully saved lead record to MongoDB Atlas | Model: Inquiry | Collection: inquiries | ID: ${savedLead._id}`);
+      return res.status(201).json({
+        success: true,
+        message: 'Inquiry submitted successfully!',
+        inquiry: savedLead,
+        lead: savedLead,
+        data: savedLead
+      });
+    }
+
+    if (process.env.MONGODB_URI) {
+      console.warn('⚠️ [Leads API] MongoDB connection not ready. Using fallback in-memory store.');
+    }
+
+    const newInquiry = { ...inquiryData, _id: 'inq_' + Date.now(), id: 'inq_' + Date.now() };
+    fallbackInquiries.unshift(newInquiry);
+    console.log(`ℹ️ [Leads API] Saved lead to local fallback store | ID: ${newInquiry._id}`);
+    res.status(201).json({
+      success: true,
+      message: 'Inquiry submitted successfully!',
+      inquiry: newInquiry,
+      lead: newInquiry,
+      data: newInquiry
+    });
+  } catch (err) {
+    console.error('❌ [Leads API] Error saving contact submission:', err.message);
+    res.status(500).json({ success: false, error: 'Failed to submit inquiry: ' + err.message });
+  }
+};
+
+const deleteInquiryHandler = async (req, res) => {
+  try {
+    const id = req.params.id;
+    if (mongoose.connection.readyState === 1) {
+      const deleted = await Inquiry.findByIdAndDelete(id);
+      console.log(`🗑️ [Admin Leads API] Admin deleted lead ID: ${id} from MongoDB Atlas (Collection: inquiries) | Existed: ${Boolean(deleted)}`);
+    }
+    fallbackInquiries = fallbackInquiries.filter(i => i._id !== id && i.id !== id);
+    res.json({ success: true, message: 'Lead deleted successfully' });
+  } catch (err) {
+    console.error('❌ [Admin Leads API] Failed to delete lead:', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 };
@@ -2116,57 +2196,18 @@ const getLeadsHandler = async (req, res) => {
 app.get('/api/leads', authenticateToken, getLeadsHandler);
 app.get('/api/admin/leads', authenticateToken, getLeadsHandler);
 app.get('/api/inquiries', authenticateToken, getLeadsHandler);
+app.get('/api/admin/inquiries', authenticateToken, getLeadsHandler);
 
-app.post('/api/inquiries',
-  body('name').optional().trim().isLength({ max: 100 }),
-  body('email').optional().trim().isLength({ max: 100 }),
-  body('message').optional().trim().isLength({ max: 3000 }),
-  async (req, res) => {
-    try {
-      const { name, email, phone, whatsapp, service, message, budget } = req.body;
-      const cleanName = sanitizeText(name || '', 100);
-      const cleanEmail = sanitizeText(email || '', 100);
-      const cleanPhone = sanitizeText(phone || whatsapp || '', 30);
-      const cleanService = sanitizeText(service || '', 100);
-      const cleanMessage = sanitizeText(message || '', 3000);
-      const cleanBudget = sanitizeText(budget || '', 50);
+app.post('/api/inquiries', inquiryLimiter, inquirySubmitHandler);
+app.post('/api/leads', inquiryLimiter, inquirySubmitHandler);
+app.post('/api/contact', inquiryLimiter, inquirySubmitHandler);
 
-      const inquiryData = {
-        name: cleanName,
-        email: cleanEmail,
-        phone: cleanPhone,
-        service: cleanService,
-        message: cleanMessage,
-        budget: cleanBudget,
-        date: new Date()
-      };
-
-      if (mongoose.connection.readyState === 1) {
-        const inquiry = new Inquiry(inquiryData);
-        await inquiry.save();
-        return res.status(201).json({ success: true, message: 'Inquiry submitted successfully!', inquiry });
-      }
-      res.status(201).json({ success: true, message: 'Inquiry submitted successfully!', inquiry: inquiryData });
-    } catch (err) {
-      res.status(500).json({ success: false, error: 'Failed to submit inquiry' });
-    }
-  }
-);
-
-const deleteInquiryHandler = async (req, res) => {
-  try {
-    if (mongoose.connection.readyState === 1) {
-      await Inquiry.findByIdAndDelete(req.params.id);
-    }
-    res.json({ success: true, message: 'Inquiry deleted successfully' });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-};
-
-app.delete('/api/admin/inquiry/:id', authenticateToken, validateIdParam, deleteInquiryHandler);
 app.delete('/api/admin/leads/:id', authenticateToken, validateIdParam, deleteInquiryHandler);
 app.delete('/api/admin/lead/:id', authenticateToken, validateIdParam, deleteInquiryHandler);
+app.delete('/api/admin/inquiry/:id', authenticateToken, validateIdParam, deleteInquiryHandler);
+app.delete('/api/admin/inquiries/:id', authenticateToken, validateIdParam, deleteInquiryHandler);
+app.delete('/api/leads/:id', authenticateToken, validateIdParam, deleteInquiryHandler);
+app.delete('/api/inquiries/:id', authenticateToken, validateIdParam, deleteInquiryHandler);
 
 // Page Routes
 app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));

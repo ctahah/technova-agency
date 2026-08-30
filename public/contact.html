@@ -479,20 +479,16 @@
 
         const result = await res.json();
 
-        if (result.success) {
+        if (res.ok && result.success) {
           form.style.display = 'none';
           successMsg.classList.add('show');
           form.reset();
         } else {
-          form.style.display = 'none';
-          successMsg.classList.add('show');
-          form.reset();
+          alert('❌ ' + (result.message || result.error || 'Failed to send message. Please try again.'));
         }
       } catch (error) {
         console.error('Submit error:', error);
-        form.style.display = 'none';
-        successMsg.classList.add('show');
-        form.reset();
+        alert('❌ Network error: Failed to send message. Please check your connection.');
       } finally {
         submitBtn.disabled = false;
         btnText.textContent = 'Send Message 🚀';

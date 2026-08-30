@@ -1285,19 +1285,21 @@ function closeTeamModal() {
         // 4. OVERVIEW STATS
         async function loadOverviewStats() {
             try {
+                const token = localStorage.getItem('token') || '';
                 const [s, p, t, r, l] = await Promise.all([
                     fetch('/api/services').then(r => r.json()).catch(() => ({})),
                     fetch('/api/portfolio').then(r => r.json()).catch(() => ({})),
                     fetch('/api/team').then(r => r.json()).catch(() => ({})),
                     fetch('/api/reviews').then(r => r.json()).catch(() => ({})),
-                    fetch('/api/leads').then(r => r.json()).catch(() => ({}))
+                    fetch('/api/admin/leads', { headers: { 'Authorization': 'Bearer ' + token } }).then(r => r.json()).catch(() => ({}))
                 ]);
                 document.getElementById('statServices').textContent = (s.services || s.data || []).length;
                 document.getElementById('statProjects').textContent = (p.projects || p.portfolio || []).length;
                 document.getElementById('statTeam').textContent = (t.team || t.data || []).length;
                 document.getElementById('statReviews').textContent = (r.reviews || r.data || []).length;
-                const leadsCount = (l.leads || l.inquiries || []).length;
-                document.getElementById('leadsBadge').textContent = leadsCount;
+                const leadsCount = (l.leads || l.inquiries || l.data || []).length;
+                const leadsBadge = document.getElementById('leadsBadge');
+                if (leadsBadge) leadsBadge.textContent = leadsCount;
             } catch (e) {}
         }
 
@@ -2329,28 +2331,108 @@ function resetReviewImageUpload() {
 
 
         // 9. LEADS
+        let leadsList = [];
+
+        function renderLeadsList() {
+            const container = document.getElementById('leadsList');
+            if (!container) return;
+
+            if (leadsList && leadsList.length > 0) {
+                container.innerHTML = leadsList.map(l => {
+                    const id = l._id || l.id;
+                    const dateStr = l.date || l.createdAt ? new Date(l.date || l.createdAt).toLocaleString(undefined, { 
+                        year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+                    }) : '';
+                    const cleanPhone = (l.phone || '').replace(/[^0-9]/g, '');
+                    const serviceBadge = (l.service || l.projectType) ? `<span class="inline-block text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-400 font-mono">${l.service || l.projectType}</span>` : '';
+                    const budgetBadge = l.budget ? `<span class="inline-block text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono">${l.budget}</span>` : '';
+
+                    return `
+                        <div class="glass p-5 rounded-2xl border border-white/10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition hover:border-cyan-500/30" id="lead-card-${id}">
+                            <div class="space-y-1.5 flex-1">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h4 class="font-bold text-white text-sm">${l.name || 'Anonymous Client'}</h4>
+                                    ${serviceBadge}
+                                    ${budgetBadge}
+                                    ${dateStr ? `<span class="text-[11px] text-gray-500 font-mono">• ${dateStr}</span>` : ''}
+                                </div>
+                                <p class="text-xs text-gray-400">
+                                    ${l.email ? `<a href="mailto:${l.email}" class="text-cyan-400 hover:underline"><i class="fa-solid fa-envelope mr-1"></i>${l.email}</a>` : ''}
+                                    ${l.phone ? `<span class="ml-2 text-gray-300"><i class="fa-solid fa-phone mr-1"></i>${l.phone}</span>` : ''}
+                                </p>
+                                <p class="text-xs text-gray-300 mt-2 bg-white/5 p-3 rounded-xl border border-white/5">${l.message || l.details || '<em class="text-gray-500">No message content provided.</em>'}</p>
+                            </div>
+                            <div class="flex items-center gap-2 self-end md:self-center shrink-0">
+                                ${cleanPhone ? `
+                                    <a href="https://wa.me/${cleanPhone}" target="_blank" class="px-4 py-2 bg-green-500/10 text-green-400 border border-green-500/30 rounded-xl text-xs font-semibold hover:bg-green-500 hover:text-white transition flex items-center gap-1.5 cursor-pointer">
+                                        <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                                    </a>
+                                ` : ''}
+                                <button onclick="deleteLead('${id}')" class="px-3.5 py-2 bg-red-500/10 text-red-400 border border-red-500/30 rounded-xl text-xs font-semibold hover:bg-red-500 hover:text-white transition flex items-center gap-1.5 cursor-pointer" title="Delete Lead">
+                                    <i class="fa-solid fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                container.innerHTML = '<div class="text-center py-12 text-gray-500 font-mono">No client leads received yet.</div>';
+            }
+        }
+
         async function loadLeads() {
             try {
-                const res = await fetch('/api/leads');
+                const token = localStorage.getItem('token') || '';
+                const res = await fetch('/api/admin/leads', {
+                    headers: { 'Authorization': 'Bearer ' + token },
+                    credentials: 'include'
+                });
                 const data = await res.json();
-                const list = data.leads || data.inquiries || [];
-                const container = document.getElementById('leadsList');
-                if (list.length > 0) {
-                    container.innerHTML = list.map(l => `
-                        <div class="glass p-5 rounded-2xl border border-white/10 flex justify-between items-center">
-                            <div>
-                                <h4 class="font-bold text-white text-sm">${l.name}</h4>
-                                <p class="text-xs text-gray-400">${l.email} • ${l.phone || 'No phone'}</p>
-                                <p class="text-xs text-gray-300 mt-2">${l.message || ''}</p>
-                            </div>
-                            ${l.phone ? '<a href="https://wa.me/' + l.phone.replace(/[^0-9]/g, '') + '" target="_blank" class="px-4 py-2 bg-green-500/10 text-green-400 border border-green-500/30 rounded-xl text-xs font-semibold hover:bg-green-500 hover:text-white transition"><i class="fa-brands fa-whatsapp mr-1"></i> WhatsApp</a>' : ''}
-                        </div>
-                    `).join('');
-                } else {
-                    container.innerHTML = '<div class="text-center py-12 text-gray-500 font-mono">No client leads received yet.</div>';
-                }
-            } catch (e) {}
+                leadsList = data.leads || data.inquiries || data.data || [];
+                renderLeadsList();
+                
+                const leadsBadge = document.getElementById('leadsBadge');
+                if (leadsBadge) leadsBadge.textContent = leadsList.length;
+            } catch (e) {
+                console.error('Error loading leads:', e);
+            }
         }
+
+        async function deleteLead(id) {
+            if (!confirm('Are you sure you want to delete this client lead?')) return;
+            const token = localStorage.getItem('token') || '';
+            const prevList = [...leadsList];
+            leadsList = leadsList.filter(l => (l._id !== id && l.id !== id));
+            renderLeadsList();
+
+            const leadsBadge = document.getElementById('leadsBadge');
+            if (leadsBadge) leadsBadge.textContent = leadsList.length;
+
+            try {
+                const res = await fetch('/api/admin/leads/' + id, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token },
+                    credentials: 'include'
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showNotification('Client lead deleted successfully', 'success');
+                } else {
+                    leadsList = prevList;
+                    renderLeadsList();
+                    if (leadsBadge) leadsBadge.textContent = leadsList.length;
+                    showNotification(data.error || data.message || 'Failed to delete lead', 'error');
+                }
+            } catch (err) {
+                leadsList = prevList;
+                renderLeadsList();
+                if (leadsBadge) leadsBadge.textContent = leadsList.length;
+                showNotification('Network error while deleting lead', 'error');
+            }
+        }
+
+        window.loadLeads = loadLeads;
+        window.deleteLead = deleteLead;
 
         // 10. AUTH & LOGOUT
         function logout() {
