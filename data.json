@@ -1,0 +1,195 @@
+{
+  "agency": {
+    "name": "TechNova",
+    "tagline": "We Build Digital Experiences That Matter",
+    "subheading": "Premium Web Development, Custom Cloud Software, and AI-Powered Mobile Applications. We turn your ambitious ideas into sleek, scalable reality.",
+    "status": "Available for new projects",
+    "contactEmail": "hello@technova.dev",
+    "contactPhone": "+1 (555) 234-5678",
+    "location": "San Francisco & Global Remote"
+  },
+  "stats": [
+    {
+      "id": 1,
+      "label": "Projects Delivered",
+      "value": 180,
+      "suffix": "+",
+      "color": "text-primary"
+    },
+    {
+      "id": 2,
+      "label": "Client Satisfaction",
+      "value": 99.4,
+      "suffix": "%",
+      "color": "text-secondary"
+    },
+    {
+      "id": 3,
+      "label": "Senior Engineers",
+      "value": 45,
+      "suffix": "+",
+      "color": "text-accent"
+    },
+    {
+      "id": 4,
+      "label": "Uptime SLA",
+      "value": 99.9,
+      "suffix": "%",
+      "color": "text-green-400"
+    }
+  ],
+  "services": [
+    {
+      "id": "srv-1",
+      "badge": "POPULAR",
+      "badgeColor": "primary",
+      "icon": "fa-solid fa-globe",
+      "title": "Custom Web Platforms",
+      "description": "Blazing fast, responsive, and SEO-optimized web applications crafted with modern stacks like Next.js, React, and Tailwind.",
+      "features": [
+        "Single Page Apps (SPA)",
+        "SaaS Architecture",
+        "API Integrations"
+      ]
+    },
+    {
+      "id": "srv-2",
+      "badge": "HIGH DEMAND",
+      "badgeColor": "secondary",
+      "icon": "fa-solid fa-mobile-screen",
+      "title": "Mobile App Development",
+      "description": "Native and cross-platform mobile apps for iOS and Android with silky smooth 60fps animations and offline-first capabilities.",
+      "features": [
+        "Flutter & React Native",
+        "App Store Publishing",
+        "Biometric Auth"
+      ]
+    },
+    {
+      "id": "srv-3",
+      "badge": "TRENDING",
+      "badgeColor": "accent",
+      "icon": "fa-solid fa-brain",
+      "title": "AI & Machine Learning",
+      "description": "Intelligent chatbots, predictive analytics, LLM fine-tuning, and automated workflows tailored to empower your business.",
+      "features": [
+        "LLM & Agent Systems",
+        "Computer Vision",
+        "RAG Knowledgebases"
+      ]
+    }
+  ],
+  "portfolio": [
+    {
+      "id": "port-1",
+      "title": "ApexPulse Analytics",
+      "category": "web",
+      "categoryLabel": "SaaS Platform",
+      "badgeColor": "secondary",
+      "image": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80",
+      "description": "Real-time revenue attribution engine for global e-commerce enterprise processing 50M+ daily events.",
+      "tags": [
+        "Next.js",
+        "TypeScript",
+        "ClickHouse"
+      ],
+      "demoUrl": "https://example.com"
+    },
+    {
+      "id": "port-2",
+      "title": "AuraPay Global Fintech",
+      "category": "mobile",
+      "categoryLabel": "Fintech",
+      "badgeColor": "primary",
+      "image": "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=800&q=80",
+      "description": "Decentralized multi-currency neo-banking wallet with contactless NFC tap-to-pay.",
+      "tags": [
+        "Flutter",
+        "Dart",
+        "Node.js"
+      ],
+      "demoUrl": "https://example.com"
+    },
+    {
+      "id": "port-3",
+      "title": "NeuroFlow AI Diagnostics",
+      "category": "ai",
+      "categoryLabel": "HealthTech AI",
+      "badgeColor": "accent",
+      "image": "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=800&q=80",
+      "description": "Medical imaging analysis tool with deep learning models aiding radiologists with 98.7% classification accuracy.",
+      "tags": [
+        "Python",
+        "PyTorch",
+        "FastAPI"
+      ],
+      "demoUrl": "https://example.com"
+    },
+    {
+      "id": "port-4",
+      "title": "Lumina Luxury Commerce",
+      "category": "web",
+      "categoryLabel": "E-Commerce",
+      "badgeColor": "green-500",
+      "image": "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80",
+      "description": "3D WebGL interactive luxury goods storefront with instant checkout and dynamic AR garment fitting.",
+      "tags": [
+        "Three.js",
+        "Shopify",
+        "TailwindCSS"
+      ],
+      "demoUrl": "https://example.com"
+    }
+  ],
+  "team": [
+    {
+      "id": "team-1",
+      "name": "Alex Mercer",
+      "role": "Founder & CEO",
+      "roleColor": "primary",
+      "bio": "Visionary leader with 15+ years in scaling global tech products.",
+      "photo": "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=200&q=80",
+      "whatsapp": "1234567890"
+    },
+    {
+      "id": "team-2",
+      "name": "Sarah Jenkins",
+      "role": "Head of Marketing",
+      "roleColor": "secondary",
+      "bio": "Expert in digital growth strategies and client acquisition.",
+      "photo": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=200&q=80",
+      "whatsapp": "1234567891"
+    },
+    {
+      "id": "team-3",
+      "name": "David Chen",
+      "role": "Senior Project Manager",
+      "roleColor": "accent",
+      "bio": "Ensures your project is delivered on time and beyond expectations.",
+      "photo": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=200&q=80",
+      "whatsapp": "1234567892"
+    }
+  ],
+  "inquiries": [
+    {
+      "id": "inq-1787898565377",
+      "name": "Test Client",
+      "email": "client@example.com",
+      "service": "AI & Machine Learning",
+      "budget": "Undisclosed",
+      "message": "Automated test inquiry",
+      "date": "2026-08-28T06:29:25.377Z",
+      "status": "New"
+    },
+    {
+      "id": "inq-1",
+      "name": "Jordan Smith",
+      "email": "jordan@fintechcorp.io",
+      "service": "Custom Web Platforms",
+      "budget": "$15,000 - $30,000",
+      "message": "We need a high-speed trading analytics dashboard with real-time WebSocket feeds.",
+      "date": "2026-08-28T10:15:00Z",
+      "status": "New"
+    }
+  ]
+}

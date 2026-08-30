@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nexora - We Build Digital Experiences</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <style>
+    
+    /* Background grid & stars animations */
+    .bg-grid {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        radial-gradient(circle at 20% 30%, rgba(0, 200, 255, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(123, 47, 255, 0.08) 0%, transparent 50%);
+      z-index: -2;
+      pointer-events: none;
+    }
+
+    .stars {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .star {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle 3s infinite ease-in-out;
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.1; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1.4); }
+    }
+
+    /* Moving gradient text */
+    .hero-text h1 .gradient,
+    .section-header h2 .gradient {
+      background: linear-gradient(90deg, #ff006e, #7b2fff, #00c8ff, #ff006e);
+      background-size: 300% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradientMove 6s linear infinite;
+    }
+
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 300% 50%; }
+    }
+
+    /* Floating Code Window Animation */
+    .float-animation {
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-16px); }
+    }
+
+    /* Blinking Cursor */
+    .cursor-blink {
+      display: inline-block;
+      width: 8px;
+      height: 16px;
+      background: #00c8ff;
+      animation: blink 1s infinite;
+      vertical-align: middle;
+      margin-left: 4px;
+    }
+
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+
+    /* Scroll Reveal Animation */
+    .reveal {
+      opacity: 0;
+      transform: translateY(35px);
+      transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+    }
+
+    .reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    
+    
+    /* =========================================================
+       SUBTLE ELEGANT BRAND GRADIENT SHIFT (Pink -> Purple -> Cyan)
+       ========================================================= */
+    .gradient,
+    .hero-text h1 .gradient,
+    .section-header h2 .gradient,
+    .text-gradient {
+      background: linear-gradient(135deg, #ff006e, #7b2fff, #00c8ff, #7b2fff, #ff006e) !important;
+      background-size: 200% 200% !important;
+      -webkit-background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+      background-clip: text !important;
+      animation: subtleGradientShift 5s ease-in-out infinite alternate !important;
+      display: inline-block;
+    }
+
+    @keyframes subtleGradientShift {
+      0% {
+        background-position: 0% 50%;
+      }
+      100% {
+        background-position: 100% 50%;
+      }
+    }
+
+
+    
+    /* =========================================================
+       SPACIOUS & SMART SIZED HERO LAYOUT
+       ========================================================= */
+    .hero {
+      min-height: 92vh;
+      display: flex;
+      align-items: center;
+      padding: 110px 4% 70px;
+      position: relative;
+    }
+
+    .hero-content {
+      max-width: 1360px;
+      width: 100%;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 70px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .hero-text {
+      max-width: 580px;
+    }
+
+    .hero-text .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+      background: rgba(0, 230, 118, 0.1);
+      border: 1px solid rgba(0, 230, 118, 0.3);
+      border-radius: 20px;
+      color: #00e676;
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .hero-text h1 {
+      font-size: 54px;
+      font-weight: 800;
+      line-height: 1.12;
+      margin-bottom: 22px;
+      letter-spacing: -1.5px;
+    }
+
+    .hero-text p {
+      color: rgba(255, 255, 255, 0.65);
+      font-size: 16px;
+      line-height: 1.65;
+      margin-bottom: 30px;
+      max-width: 480px;
+    }
+
+    /* Smart Sized Code Window */
+    .code-window {
+      max-width: 480px;
+      width: 100%;
+      margin-left: auto;
+      background: rgba(13, 13, 22, 0.95);
+      border: 1px solid rgba(0, 200, 255, 0.2);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0, 200, 255, 0.12), 0 0 30px rgba(123, 47, 255, 0.08);
+      animation: codeFloat 5s ease-in-out infinite !important;
+      position: relative;
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 16px;
+      background: rgba(0, 0, 0, 0.35);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .code-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .code-title {
+      margin-left: 8px;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 12px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .code-body {
+      padding: 20px 22px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.7;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    @keyframes codeFloat {
+      0%, 100% {
+        transform: translateY(0px);
+        box-shadow: 0 20px 50px rgba(0, 200, 255, 0.12), 0 0 30px rgba(123, 47, 255, 0.08);
+      }
+      50% {
+        transform: translateY(-14px);
+        box-shadow: 0 30px 70px rgba(0, 200, 255, 0.22), 0 0 45px rgba(123, 47, 255, 0.16);
+      }
+    }
+
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0, 200, 255, 0.3); }
+
+    .btn-secondary {
+      padding: 14px 28px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Code Window */
+    
+    /* Code Window Floating Animation */
+    .code-window {
+      background: rgba(15, 15, 25, 0.95);
+      border: 1px solid rgba(0, 200, 255, 0.2);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 25px 60px rgba(0, 200, 255, 0.12), 0 0 30px rgba(123, 47, 255, 0.1);
+      animation: codeFloat 5s ease-in-out infinite !important;
+      position: relative;
+    }
+
+    @keyframes codeFloat {
+      0%, 100% {
+        transform: translateY(0px);
+        box-shadow: 0 25px 60px rgba(0, 200, 255, 0.12), 0 0 30px rgba(123, 47, 255, 0.1);
+      }
+      50% {
+        transform: translateY(-16px);
+        box-shadow: 0 35px 80px rgba(0, 200, 255, 0.25), 0 0 50px rgba(123, 47, 255, 0.2);
+      }
+    }
+
+    .cursor-blink {
+      display: inline-block;
+      width: 9px;
+      height: 18px;
+      background: #00c8ff;
+      margin-left: 4px;
+      vertical-align: middle;
+      box-shadow: 0 0 10px #00c8ff;
+      animation: cursorBlink 0.8s infinite alternate;
+    }
+
+    @keyframes cursorBlink {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    .old-code-window {
+      background: rgba(15, 15, 25, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 18px;
+      background: rgba(0, 0, 0, 0.3);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .code-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+
+    .code-dot.red { background: #ff5f57; }
+    .code-dot.yellow { background: #ffbd2e; }
+    .code-dot.green { background: #28c840; }
+
+    .code-title {
+      margin-left: 12px;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 13px;
+      font-family: 'Courier New', monospace;
+    }
+
+    .code-body {
+      padding: 25px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.8;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .code-body .keyword { color: #c678dd; }
+    .code-body .variable { color: #e06c75; }
+    .code-body .string { color: #98c379; }
+    .code-body .function { color: #61afef; }
+    .code-body .comment { color: #5c6370; font-style: italic; }
+    .code-body .number { color: #d19a66; }
+
+    /* Stats */
+    .stats-section {
+      padding: 0 60px 80px;
+    }
+
+    .stats-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 30px;
+      text-align: center;
+      transition: all 0.3s;
+    }
+
+    .stat-card:hover {
+      border-color: rgba(0, 200, 255, 0.2);
+      transform: translateY(-3px);
+    }
+
+    .stat-value {
+      font-size: 42px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      letter-spacing: -1px;
+    }
+
+    .stat-value.cyan { color: #00c8ff; }
+    .stat-value.purple { color: #7b2fff; }
+    .stat-value.pink { color: #ff006e; }
+    .stat-value.green { color: #00e676; }
+
+    .stat-label {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.5);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-weight: 600;
+    }
+
+    /* Portfolio Section */
+    .portfolio-section {
+      padding: 80px 60px;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .section-header .overline {
+      font-size: 11px;
+      color: #ff006e;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .section-header h2 {
+      font-size: 42px;
+      font-weight: 800;
+      margin-bottom: 15px;
+    }
+
+    .section-header h2 .gradient {
+      background: linear-gradient(135deg, #ff006e, #00c8ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-header p {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 16px;
+    }
+
+    .filter-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 40px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 8px 20px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .filter-btn:hover,
+    .filter-btn.active {
+      background: #00c8ff;
+      color: #000;
+      border-color: #00c8ff;
+    }
+
+    .portfolio-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 25px;
+    }
+
+    .portfolio-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+
+    .portfolio-card:hover {
+      border-color: rgba(0, 200, 255, 0.3);
+      transform: translateY(-5px);
+    }
+
+    .portfolio-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      position: relative;
+    }
+
+    .portfolio-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .portfolio-category-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      padding: 4px 12px;
+      background: #00c8ff;
+      color: #000;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .portfolio-body {
+      padding: 20px;
+    }
+
+    .portfolio-body h3 {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .portfolio-body p {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 13px;
+      line-height: 1.6;
+      margin-bottom: 15px;
+    }
+
+    .tech-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 15px;
+    }
+
+    .tech-tag {
+      padding: 4px 10px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .portfolio-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .portfolio-footer .category {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .portfolio-footer .view-demo {
+      color: #00c8ff;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Team Section */
+    .team-section {
+      padding: 80px 60px;
+      background: linear-gradient(180deg, transparent, rgba(123, 47, 255, 0.03));
+    }
+
+    .team-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 25px;
+    }
+
+    .team-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 2px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 30px 25px;
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: visible !important;
+    }
+
+    .team-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(0, 200, 255, 0.3);
+    }
+
+    .team-card.ceo {
+      border-color: #ff0050;
+      background: rgba(255, 0, 80, 0.05);
+      box-shadow: 0 0 30px rgba(255, 0, 80, 0.15);
+    }
+
+    .team-card .ceo-badge {
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #ff0050, #ff4080);
+      color: #fff;
+      padding: 5px 18px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      white-space: nowrap;
+      box-shadow: 0 4px 18px rgba(255, 0, 80, 0.6);
+      z-index: 30;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1.2;
+    }
+
+    .team-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin: 0 auto 20px;
+      border: 3px solid #00c8ff;
+      display: block;
+    }
+
+    .team-card.ceo .team-avatar {
+      border-color: #ff0050;
+      box-shadow: 0 0 20px rgba(255, 0, 80, 0.5);
+      margin-top: 10px;
+    }
+
+    .team-name {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 5px;
+      color: #fff;
+    }
+
+    .team-card.ceo .team-name {
+      color: #ff0050;
+    }
+
+    .team-role {
+      color: #00c8ff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 15px;
+    }
+
+    .team-card.ceo .team-role {
+      color: #ff0050;
+    }
+
+    .team-desc {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 13px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .whatsapp-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: rgba(37, 211, 102, 0.1);
+      border: 1px solid rgba(37, 211, 102, 0.3);
+      border-radius: 8px;
+      color: #25d366;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .team-card.ceo .whatsapp-btn {
+      background: rgba(255, 0, 80, 0.1);
+      border-color: rgba(255, 0, 80, 0.3);
+      color: #ff0050;
+    }
+
+    .whatsapp-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .team-loading {
+      text-align: center;
+      padding: 60px;
+      color: rgba(255, 255, 255, 0.5);
+      grid-column: 1 / -1;
+    }
+
+    .team-loading .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-top-color: #00c8ff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Reviews Section */
+    .reviews-section {
+      padding: 80px 60px;
+    }
+
+    .reviews-grid {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 25px;
+    }
+
+    .review-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 30px;
+    }
+
+    .review-stars {
+      color: #ffd700;
+      font-size: 16px;
+      margin-bottom: 15px;
+    }
+
+    .review-text {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 14px;
+      line-height: 1.7;
+      font-style: italic;
+      margin-bottom: 20px;
+    }
+
+    .review-author {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .review-author-avatar {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ff006e, #7b2fff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .review-author-info strong {
+      display: block;
+      font-size: 14px;
+      color: #fff;
+    }
+
+    .review-author-info small {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 12px;
+    }
+
+    @media (max-width: 968px) {
+      .hero-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+      .hero-text h1 { font-size: 42px; }
+      .hero-text p { margin: 0 auto 35px; }
+      .hero-buttons { justify-content: center; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .portfolio-grid { grid-template-columns: 1fr; }
+      .reviews-grid { grid-template-columns: 1fr; }
+      .hero, .stats-section, .portfolio-section, .team-section, .reviews-section {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+    }
+  </style>
+  <meta name="description" content="Nexora - Premium Web Development Agency" />
+  <meta property="og:title" content="Nexora" />
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="stars" id="stars"></div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand">
+  <svg class="logo-svg" width="36" height="36" viewBox="0 0 100 100">
+    <defs>
+      <linearGradient id="logoGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#00d4ff" />
+        <stop offset="100%" style="stop-color:#0033aa" />
+      </linearGradient>
+    </defs>
+    <path d="M 15 85 L 15 15 L 30 15 L 65 65 L 65 15 L 85 15 L 85 85 L 70 85 L 35 35 L 35 85 Z" 
+          fill="url(#logoGrad2)" stroke="#00d4ff" stroke-width="1"/>
+  </svg>
+  <span class="name">Nexora</span>
+</a>
+    <div class="navbar-links">
+      <a href="index.html" class="active">Home</a>
+      <a href="services.html">Services</a>
+      <a href="pricing.html">Pricing</a>
+      <a href="portfolio.html">Portfolio</a>
+      <a href="team.html">Team</a>
+      <a href="reviews.html">Reviews</a>
+      <a href="contact.html">Contact</a>
+    </div>
+    <div class="navbar-actions">
+      <a href="contact.html" class="btn-quote">🚀 Get a Quote</a>
+      <button class="btn-whatsapp" id="whatsappBtn">💬 WhatsApp ▾</button>
+      <a href="admin-login.html" class="btn-admin">🔒 Admin</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content reveal">
+      <div class="hero-text">
+        <div class="badge">Available for new projects</div>
+        <h1>We Build <span class="gradient">Digital</span> Experiences That <span class="gradient">Matter</span></h1>
+        <p>Premium Web Development, Custom Cloud Software, and AI-Powered Mobile Applications. We turn your ambitious ideas into sleek, scalable reality.</p>
+        <div class="hero-buttons">
+          <a href="contact.html" class="btn-primary">Start a Project →</a>
+          <a href="portfolio.html" class="btn-secondary">▶ View Our Work</a>
+        </div>
+      </div>
+      <div class="code-window float-animation">
+        <div class="code-header">
+          <span class="code-dot red"></span>
+          <span class="code-dot yellow"></span>
+          <span class="code-dot green"></span>
+          <span class="code-title">nexora.js</span>
+        </div>
+        <div class="code-body" id="codeEditorBody">
+          <div id="codeTypewriter"></div><span class="cursor-blink"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="stats-section">
+    <div class="stats-grid reveal">
+      <div class="stat-card">
+        <div class="stat-value cyan counter" data-target="180">0</div>
+        <div class="stat-label">Projects Delivered</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value purple"><span class="counter" data-target="99">0</span>.4%</div>
+        <div class="stat-label">Client Satisfaction</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value pink counter" data-target="45">0</div>
+        <div class="stat-label">Senior Engineers</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value green"><span class="counter" data-target="99">0</span>.9%</div>
+        <div class="stat-label">Uptime SLA</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Portfolio Section -->
+  <section class="portfolio-section">
+    <div class="section-header reveal">
+      <div class="overline">Featured Work</div>
+      <h2>Engineered for Global <span class="gradient">Impact</span></h2>
+    </div>
+    <div class="filter-buttons">
+      <button class="filter-btn active" data-filter="all">All</button>
+      <button class="filter-btn" data-filter="web">Web</button>
+      <button class="filter-btn" data-filter="mobile">Mobile</button>
+      <button class="filter-btn" data-filter="ai">AI / ML</button>
+    </div>
+    <div class="portfolio-grid reveal">
+      <div class="portfolio-card" data-category="web">
+        <div class="portfolio-image" style="position:relative;">
+          <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=250&fit=crop" alt="ApexPulse" onerror="this.src='https://via.placeholder.com/400x200/0a0a0f/00c8ff?text=ApexPulse'" />
+          <span class="portfolio-category-badge">SaaS Platform</span>
+        </div>
+        <div class="portfolio-body">
+          <h3>ApexPulse Analytics</h3>
+          <p>Real-time revenue attribution engine for global e-commerce enterprises.</p>
+          <div class="tech-tags">
+            <span class="tech-tag">Next.js</span>
+            <span class="tech-tag">TypeScript</span>
+          </div>
+          <div class="portfolio-footer">
+            <span class="category">Category: Web</span>
+            <a href="#" class="view-demo">View Demo ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="portfolio-card" data-category="mobile">
+        <div class="portfolio-image" style="position:relative;">
+          <img src="https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=250&fit=crop" alt="AuraPay" onerror="this.src='https://via.placeholder.com/400x200/0a0a0f/7b2fff?text=AuraPay'" />
+          <span class="portfolio-category-badge">Fintech</span>
+        </div>
+        <div class="portfolio-body">
+          <h3>AuraPay Global Fintech</h3>
+          <p>Decentralized multi-currency neo-banking wallet with contactless NFC.</p>
+          <div class="tech-tags">
+            <span class="tech-tag">Flutter</span>
+            <span class="tech-tag">Dart</span>
+          </div>
+          <div class="portfolio-footer">
+            <span class="category">Category: Mobile</span>
+            <a href="#" class="view-demo">View Demo ↗</a>
+          </div>
+        </div>
+      </div>
+      <div class="portfolio-card" data-category="ai">
+        <div class="portfolio-image" style="position:relative;">
+          <img src="https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=250&fit=crop" alt="NeuroFlow" onerror="this.src='https://via.placeholder.com/400x200/0a0a0f/ff006e?text=NeuroFlow'" />
+          <span class="portfolio-category-badge" style="background:#ff006e;">HealthTech AI</span>
+        </div>
+        <div class="portfolio-body">
+          <h3>NeuroFlow AI Diagnostics</h3>
+          <p>Medical imaging analysis tool with deep learning models aiding radiologists.</p>
+          <div class="tech-tags">
+            <span class="tech-tag">Python</span>
+            <span class="tech-tag">PyTorch</span>
+          </div>
+          <div class="portfolio-footer">
+            <span class="category">Category: AI</span>
+            <a href="#" class="view-demo">View Demo ↗</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Team Section -->
+  <section class="team-section">
+    <div class="section-header">
+      <div class="overline">Our Leadership</div>
+      <h2>Meet The <span class="gradient">Experts</span></h2>
+      <p>Directly connect with our decision makers via WhatsApp.</p>
+    </div>
+    <div class="team-grid" id="homeTeamGrid">
+      <div class="team-loading">
+        <div class="spinner"></div>
+        <p>Loading team members...</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Reviews Section -->
+  <section class="reviews-section">
+    <div class="section-header">
+      <div class="overline">Client Testimonials</div>
+      <h2>Trusted by Industry <span class="gradient">Pioneers</span></h2>
+    </div>
+    <div class="reviews-grid reveal">
+      <div class="review-card">
+        <div class="review-stars">⭐⭐⭐⭐⭐</div>
+        <p class="review-text">"TechNova rebuilt our legacy banking portal into a hyper-responsive SaaS platform. Our page latency dropped by 70%."</p>
+        <div class="review-author">
+          <div class="review-author-avatar">ER</div>
+          <div class="review-author-info">
+            <strong>Elena Rostova</strong>
+            <small>CTO at NexuFin</small>
+          </div>
+        </div>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">⭐⭐⭐⭐⭐</div>
+        <p class="review-text">"The engineering depth and aesthetic finesse of the TechNova team is extraordinary. They deliver scalable production code."</p>
+        <div class="review-author">
+          <div class="review-author-avatar" style="background:linear-gradient(135deg,#00c8ff,#7b2fff);">MS</div>
+          <div class="review-author-info">
+            <strong>Marcus Sterling</strong>
+            <small>Founder & CEO, ApexData</small>
+          </div>
+        </div>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">⭐⭐⭐⭐⭐</div>
+        <p class="review-text">"Integrating our neural network diagnostics with their UI was seamless. TechNova understood our complex clinical workflows."</p>
+        <div class="review-author">
+          <div class="review-author-avatar" style="background:linear-gradient(135deg,#00e676,#00c8ff);">SL</div>
+          <div class="review-author-info">
+            <strong>Dr. Sarah Lin</strong>
+            <small>Lead Research Director, MedSyn</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>© 2024 Nexora. All rights reserved. | <a href="contact.html">Contact Us</a></p>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    // ============================================
+    // HOME PAGE - Team Loader
+    // ============================================
+    async function loadHomeTeam() {
+      const grid = document.getElementById('homeTeamGrid');
+      
+      if (!grid) {
+        return;
+      }
+
+      try {
+        const data = (typeof fetchTeamData === 'function') ? await fetchTeamData() : await fetch('/api/team').then(r => r.json());
+        const list = Array.isArray(data.data) ? data.data : (Array.isArray(data.team) ? data.team : []);
+
+        if (data.success && list.length > 0) {
+          const sorted = [...list].sort((a, b) => {
+            if (a.isFeatured && !b.isFeatured) return -1;
+            if (!a.isFeatured && b.isFeatured) return 1;
+            return 0;
+          });
+
+          // Show up to 4 members on home page
+          const members = sorted.slice(0, 4);
+
+          grid.innerHTML = members.map(member => {
+            const isCEO = member.isFeatured === true;
+            const waNum = (member.whatsappNumber || '').replace(/[^0-9]/g, '');
+            const avatarSrc = member.image || 'https://via.placeholder.com/100';
+            return `
+              <div class="team-card ${isCEO ? 'ceo' : ''}">
+                ${isCEO ? '<div class="ceo-badge">🔴 CEO / FOUNDER</div>' : ''}
+                <img 
+                  src="${avatarSrc}" 
+                  alt="${member.name || 'Team Member'}" 
+                  class="team-avatar"
+                  onerror="this.onerror=null; this.src='https://via.placeholder.com/100';"
+                />
+                <h3 class="team-name" style="${isCEO ? 'color: #ff0050;' : ''}">${member.name || ''}</h3>
+                <p class="team-role" style="${isCEO ? 'color: #ff0050;' : ''}">${member.role || ''}</p>
+                <p class="team-desc">${member.description || ''}</p>
+                <a 
+                  href="https://wa.me/${waNum}" 
+                  target="_blank"
+                  class="whatsapp-btn"
+                >
+                  💬 Chat on WhatsApp
+                </a>
+              </div>
+            `;
+          }).join('');
+        } else {
+          grid.innerHTML = `
+            <div style="text-align:center;padding:40px;color:rgba(255,255,255,0.5);grid-column:1/-1;">
+              <p>No team members available.</p>
+            </div>
+          `;
+        }
+      } catch (error) {
+        console.error('Error loading team:', error);
+        grid.innerHTML = `
+          <div style="text-align:center;padding:40px;color:#ff0050;grid-column:1/-1;">
+            <p>⚠️ Failed to load team members.</p>
+          </div>
+        `;
+      }
+    }
+
+    // Load team immediately on script parse
+    loadHomeTeam();
+
+    // Portfolio Filter
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        const filter = this.dataset.filter;
+        document.querySelectorAll('.portfolio-card').forEach(card => {
+          if (filter === 'all' || card.dataset.category === filter) {
+            card.style.display = 'block';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    });
+
+    
+    // 1. Stars Background Animation
+    
+    // ============================================
+    // LIVE CODE TYPEWRITER ANIMATION
+    // ============================================
+    const codeLines = [
+      '<span class="keyword">const</span> <span class="variable">agency</span> = <span class="keyword">new</span> <span class="function">TechNova</span>({',
+      '&nbsp;&nbsp;mission: <span class="string">"Enterprise Scale"</span>,',
+      '&nbsp;&nbsp;stack: [<span class="string">"MongoDB"</span>, <span class="string">"Express"</span>, <span class="string">"Mongoose"</span>],',
+      '&nbsp;&nbsp;uptime: <span class="number">99.9</span>,',
+      '&nbsp;&nbsp;team: <span class="number">45</span> <span class="comment">// senior engineers</span>,',
+      '});',
+      '',
+      '<span class="variable">agency</span>.<span class="function">deployToProduction</span>(); <span class="comment">// live ⚡</span>'
+    ];
+
+    let currentLineIdx = 0;
+    let currentCharIdx = 0;
+    let isTyping = true;
+
+    function typeCode() {
+      const container = document.getElementById('codeTypewriter');
+      if (!container) return;
+
+      if (currentLineIdx < codeLines.length) {
+        const fullLine = codeLines[currentLineIdx];
+        
+        // Render completed lines plus current line
+        const completedLines = codeLines.slice(0, currentLineIdx).join('<br>');
+        container.innerHTML = (completedLines ? completedLines + '<br>' : '') + fullLine;
+        
+        currentLineIdx++;
+        setTimeout(typeCode, 280);
+      } else {
+        // Full code rendered, pause then loop smoothly
+        setTimeout(() => {
+          currentLineIdx = 0;
+          typeCode();
+        }, 8000);
+      }
+    }
+
+    function createStars() {
+      const starsContainer = document.getElementById('stars');
+      if (starsContainer && starsContainer.children.length === 0) {
+        for (let i = 0; i < 80; i++) {
+          const star = document.createElement('div');
+          star.className = 'star';
+          star.style.left = Math.random() * 100 + '%';
+          star.style.top = Math.random() * 100 + '%';
+          star.style.animationDelay = Math.random() * 3 + 's';
+          starsContainer.appendChild(star);
+        }
+      }
+    }
+
+    // 2. Scroll Reveal Observer
+    function initReveal() {
+      const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('active');
+          }
+        });
+      }, { threshold: 0.12 });
+
+      document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+    }
+
+    // 3. Number Counter Animation
+    function initCounters() {
+      const counterObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const counter = entry.target;
+            const target = +counter.getAttribute('data-target');
+            const duration = 1800;
+            const increment = target / (duration / 16);
+            let current = 0;
+
+            const update = () => {
+              current += increment;
+              if (current < target) {
+                counter.innerText = Math.ceil(current);
+                requestAnimationFrame(update);
+              } else {
+                counter.innerText = target;
+              }
+            };
+            update();
+            counterObserver.unobserve(counter);
+          }
+        });
+      }, { threshold: 0.5 });
+
+      document.querySelectorAll('.counter').forEach(c => counterObserver.observe(c));
+    }
+
+    // Page load hone par team load karo
+    function initHomePage() {
+      try { loadHomeTeam(); } catch(e) { console.error('loadHomeTeam error:', e); }
+      try { createStars(); } catch(e) { console.error('createStars error:', e); }
+      try { initReveal(); } catch(e) { console.error('initReveal error:', e); }
+      try { initCounters(); } catch(e) { console.error('initCounters error:', e); }
+      try { typeCode(); } catch(e) { console.error('typeCode error:', e); }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initHomePage);
+    } else {
+      initHomePage();
+    }
+  </script>
+
+</body>
+</html>

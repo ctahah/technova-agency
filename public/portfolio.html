@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portfolio - Nexora</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <meta name="description" content="Nexora - Premium Web Development Agency" />
+  <meta property="og:title" content="Nexora" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand">
+  <svg class="logo-svg" width="36" height="36" viewBox="0 0 100 100">
+    <defs>
+      <linearGradient id="logoGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#00d4ff" />
+        <stop offset="100%" style="stop-color:#0033aa" />
+      </linearGradient>
+    </defs>
+    <path d="M 15 85 L 15 15 L 30 15 L 65 65 L 65 15 L 85 15 L 85 85 L 70 85 L 35 35 L 35 85 Z" 
+          fill="url(#logoGrad2)" stroke="#00d4ff" stroke-width="1"/>
+  </svg>
+  <span class="name">Nexora</span>
+</a>
+    <div class="navbar-links">
+      <a href="index.html">Home</a>
+      <a href="services.html">Services</a>
+      <a href="pricing.html">Pricing</a>
+      <a href="portfolio.html" class="active">Portfolio</a>
+      <a href="team.html">Team</a>
+      <a href="reviews.html">Reviews</a>
+      <a href="contact.html">Contact</a>
+    </div>
+    <div class="navbar-actions">
+      <a href="contact.html" class="btn-quote">🚀 Get a Quote</a>
+      <button class="btn-whatsapp">💬 WhatsApp ▾</button>
+      <a href="admin-login.html" class="btn-admin">🔒 Admin</a>
+    </div>
+  </nav>
+
+  <div class="page-content">
+    <section class="section">
+      <div style="text-align:center;">
+        <span class="section-badge">Case Studies</span>
+        <h2 class="section-title">Selected Enterprise <span>Works</span></h2>
+        <p class="section-subtitle">Real results for real clients. Explore our recent projects.</p>
+      </div>
+      <div class="card-grid" id="portfolioGrid">
+        <div class="card">
+          <div style="width:100%;height:200px;background:linear-gradient(135deg,#00c8ff,#7b2fff);border-radius:12px;margin-bottom:15px;display:flex;align-items:center;justify-content:center;font-size:48px;">📊</div>
+          <div style="font-size:11px;color:#00c8ff;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Fintech • SaaS</div>
+          <h3>OmniLedger Banking Portal</h3>
+          <p>Real-time banking ledger managing millions in institutional transactions.</p>
+          <div style="margin-top:15px;display:flex;gap:8px;flex-wrap:wrap;">
+            <span style="padding:4px 10px;background:rgba(255,255,255,0.05);border-radius:6px;font-size:12px;">Next.js</span>
+            <span style="padding:4px 10px;background:rgba(255,255,255,0.05);border-radius:6px;font-size:12px;">TypeScript</span>
+            <span style="padding:4px 10px;background:rgba(255,255,255,0.05);border-radius:6px;font-size:12px;">PostgreSQL</span>
+          </div>
+        </div>
+        <div class="card">
+          <div style="width:100%;height:200px;background:linear-gradient(135deg,#ff006e,#7b2fff);border-radius:12px;margin-bottom:15px;display:flex;align-items:center;justify-content:center;font-size:48px;">🧠</div>
+          <div style="font-size:11px;color:#ff006e;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">HealthTech • AI</div>
+          <h3>NeuroFlow Medical Diagnostics</h3>
+          <p>Automated MRI image diagnostics utilizing neural network classifiers.</p>
+          <div style="margin-top:15px;display:flex;gap:8px;flex-wrap:wrap;">
+            <span style="padding:4px 10px;background:rgba(255,255,255,0.05);border-radius:6px;font-size:12px;">PyTorch</span>
+            <span style="padding:4px 10px;background:rgba(255,255,255,0.05);border-radius:6px;font-size:12px;">FastAPI</span>
+            <span style="padding:4px 10px;background:rgba(255,255,255,0.05);border-radius:6px;font-size:12px;">React</span>
+          </div>
+        </div>
+        <div class="card">
+          <div style="width:100%;height:200px;background:linear-gradient(135deg,#00e676,#00c8ff);border-radius:12px;margin-bottom:15px;display:flex;align-items:center;justify-content:center;font-size:48px;">🔒</div>
+          <div style="font-size:11px;color:#00e676;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Cloud • Security</div>
+          <h3>CyberShield Zero Trust</h3>
+          <p>Enterprise access control and real-time vulnerability intelligence.</p>
+          <div style="margin-top:15px;display:flex;gap:8px;flex-wrap:wrap;">
+            <span style="padding:4px 10px;background:rgba(255,255,255,0.05);border-radius:6px;font-size:12px;">Golang</span>
+            <span style="padding:4px 10px;background:rgba(255,255,255,0.05);border-radius:6px;font-size:12px;">Kubernetes</span>
+            <span style="padding:4px 10px;background:rgba(255,255,255,0.05);border-radius:6px;font-size:12px;">gRPC</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <footer class="footer">
+    <p>© 2024 Nexora. All rights reserved. | <a href="contact.html">Contact Us</a></p>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

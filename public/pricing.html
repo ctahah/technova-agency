@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - Nexora</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/style.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: { extend: {
+                fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Space Grotesk', 'sans-serif'] },
+                colors: { dark: '#05050A', primary: '#00F0FF', secondary: '#7000FF', accent: '#FF007A' }
+            }}
+        }
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background-color: #05050A; color: #ffffff; font-family: 'Inter', sans-serif; }
+        .glass-nav { background: rgba(5, 5, 10, 0.85); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+        .glow-card { transition: all 0.4s ease; background: rgba(15, 15, 22, 0.5); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .glow-card:hover { transform: translateY(-5px); border-color: rgba(0, 240, 255, 0.3); }
+        .reveal { opacity: 0; transform: translateY(40px); transition: all 0.8s cubic-bezier(0.5, 0, 0, 1); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        /* Mobile Responsive Enhancements (Desktop is 100% Preserved) */
+        @media (max-width: 768px) {
+            .reveal {
+                opacity: 1 !important;
+                transform: none !important;
+                visibility: visible !important;
+            }
+            .glow-card {
+                height: auto !important;
+                min-height: auto !important;
+                max-height: none !important;
+                overflow: visible !important;
+                padding: 1.5rem !important;
+            }
+            h1, h2, h3, h4, p, span, li, button {
+                overflow-wrap: break-word !important;
+                word-break: break-word !important;
+                white-space: normal !important;
+            }
+        }
+    </style>
+  <meta name="description" content="Nexora - Premium Web Development Agency" />
+  <meta property="og:title" content="Nexora" />
+</head>
+<body>
+    <!-- Navbar (same as above) -->
+    <nav class="glass-nav fixed w-full top-0 z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <a href="index.html" class="flex items-center gap-3">
+                <div style="display:flex;align-items:center;"><svg class="logo-svg" width="36" height="36" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00d4ff;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#0066ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0033aa;stop-opacity:1" />
+    </linearGradient>
+    <filter id="logoShadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0066ff" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+  <!-- N letter -->
+  <path d="M 15 85 L 15 15 L 30 15 L 65 65 L 65 15 L 85 15 L 85 85 L 70 85 L 35 35 L 35 85 Z" 
+        fill="url(#logoGrad)" 
+        filter="url(#logoShadow)"
+        stroke="#00d4ff" 
+        stroke-width="1"/>
+  <!-- Shine effect -->
+  <path d="M 20 20 L 30 20 L 60 60 L 60 20 L 75 20 L 75 75 L 65 75 L 35 35 L 35 75 L 20 75 Z" 
+        fill="url(#logoGrad)" 
+        opacity="0.9"/>
+  <!-- Highlight -->
+  <path d="M 25 25 L 35 25 L 55 50 L 55 30 L 70 30 L 70 70 L 62 70 L 40 42 L 40 70 L 25 70 Z" 
+        fill="white" 
+        opacity="0.15"/>
+</svg></div>
+                <h1 class="text-xl font-display font-bold text-white company-name">TechNova</h1>
+            </a>
+            <div class="hidden lg:flex items-center space-x-8 text-sm font-medium text-gray-300">
+                <a href="index.html" class="hover:text-primary transition-colors">Home</a>
+                <a href="services.html" class="hover:text-primary transition-colors">Services</a>
+                <a href="pricing.html" class="text-primary">Pricing</a>
+                <a href="portfolio.html" class="hover:text-primary transition-colors">Portfolio</a>
+                <a href="team.html" class="hover:text-primary transition-colors">Team</a>
+                <a href="reviews.html" class="hover:text-primary transition-colors">Reviews</a>
+                <a href="contact.html" class="hover:text-primary transition-colors">Contact</a>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="contact.html" class="hidden md:flex items-center gap-2 bg-primary/10 border border-primary/30 text-primary px-5 py-2.5 rounded-full text-sm font-semibold hover:bg-primary hover:text-black transition-all">
+                    <i class="fa-solid fa-paper-plane text-xs"></i> Get a Quote
+                </a>
+                <a href="admin-login.html" class="hidden md:flex items-center gap-2 bg-white/5 border border-white/10 text-gray-300 px-5 py-2.5 rounded-full text-sm font-semibold hover:bg-white/10 transition-all">
+                    <i class="fa-solid fa-lock text-xs"></i> Admin Portal
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Pricing Section -->
+    <section class="pt-28 sm:pt-32 pb-24 px-4 sm:px-6 overflow-x-hidden">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-12 sm:mb-16 reveal">
+                <span class="inline-block text-green-400 text-xs font-semibold uppercase tracking-wider sm:tracking-widest border border-green-400/30 px-4 py-1.5 rounded-full max-w-full">Complete Website Pricing</span>
+                <h3 class="text-3xl sm:text-4xl md:text-5xl font-display font-bold mt-4 sm:mt-6 break-words leading-tight">Transparent PKR Pricing Matrix</h3>
+                <p class="text-gray-400 mt-3 sm:mt-4 max-w-2xl mx-auto text-sm sm:text-base break-words">Clear, upfront investment tiers with no hidden fees.</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Starter -->
+                <div class="glow-card p-8 rounded-2xl reveal">
+                    <h4 class="text-lg font-display font-bold text-white mb-2">STARTER</h4>
+                    <p class="text-gray-400 text-xs mb-4">For personal and simple launch sites</p>
+                    <div class="text-3xl font-display font-bold text-white mb-6">7,000 <span class="text-sm text-primary">PKR</span></div>
+                    <ul class="space-y-3 text-sm text-gray-300 mb-6">
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> 3-5 pages</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Responsive design</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Mobile friendly</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> WhatsApp button</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Call button</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Basic animations</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Contact section</li>
+                    </ul>
+                    <button onclick="openOrderModal('Starter Package - 7,000 PKR')" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all cursor-pointer">
+                        Order on WhatsApp
+                    </button>
+                </div>
+
+                <!-- Basic -->
+                <div class="glow-card p-8 rounded-2xl reveal">
+                    <h4 class="text-lg font-display font-bold text-white mb-2">BASIC</h4>
+                    <p class="text-gray-400 text-xs mb-4">For small businesses & portfolios</p>
+                    <div class="text-3xl font-display font-bold text-white mb-6">10,000 <span class="text-sm text-primary">PKR</span></div>
+                    <ul class="space-y-3 text-sm text-gray-300 mb-6">
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> 5 pages</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Responsive design</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Modern UI</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> WhatsApp integration</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Call integration</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Contact section & Basic SEO</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Animations</li>
+                    </ul>
+                    <button onclick="openOrderModal('Basic Package - 10,000 PKR')" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all cursor-pointer">
+                        Order on WhatsApp
+                    </button>
+                </div>
+
+                <!-- Professional (Most Popular) -->
+                <div class="glow-card p-8 rounded-2xl reveal relative pt-12 border-2 border-primary/50">
+                    <div class="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                        <div class="bg-gradient-to-r from-primary to-secondary text-black text-xs font-bold px-4 py-1.5 rounded-full shadow-lg shadow-primary/30">
+                            MOST POPULAR
+                        </div>
+                    </div>
+                    <h4 class="text-lg font-display font-bold text-white mb-2">PROFESSIONAL</h4>
+                    <p class="text-gray-400 text-xs mb-4">High-ticket professional commercial UI</p>
+                    <div class="text-3xl font-display font-bold text-white mb-6">15,000 <span class="text-sm text-primary">PKR</span></div>
+                    <ul class="space-y-3 text-sm text-gray-300 mb-6">
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> 5-8 pages</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Premium UI</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Advanced animations</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> WhatsApp ordering</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Product/service sections</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Contact form</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Google Map & SEO basics</li>
+                    </ul>
+                    <button onclick="openOrderModal('Professional Package - 15,000 PKR')" class="w-full bg-gradient-to-r from-primary to-secondary text-white px-6 py-3 rounded-xl font-semibold hover:shadow-[0_0_20px_rgba(0,240,255,0.4)] transition-all cursor-pointer">
+                        Order on WhatsApp
+                    </button>
+                </div>
+
+                <!-- Business -->
+                <div class="glow-card p-8 rounded-2xl reveal">
+                    <h4 class="text-lg font-display font-bold text-white mb-2">BUSINESS</h4>
+                    <p class="text-gray-400 text-xs mb-4">For established commercial businesses</p>
+                    <div class="text-3xl font-display font-bold text-white mb-6">25,000 <span class="text-sm text-primary">PKR</span></div>
+                    <ul class="space-y-3 text-sm text-gray-300 mb-6">
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Premium business website</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Advanced UI</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Product/service management structure</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> WhatsApp orders</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Reviews section & Gallery</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Advanced animations & SEO basics</li>
+                    </ul>
+                    <button onclick="openOrderModal('Business Package - 25,000 PKR')" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all cursor-pointer">
+                        Order on WhatsApp
+                    </button>
+                </div>
+
+                <!-- Premium -->
+                <div class="glow-card p-8 rounded-2xl reveal">
+                    <h4 class="text-lg font-display font-bold text-white mb-2">PREMIUM</h4>
+                    <p class="text-gray-400 text-xs mb-4">High-end bespoke visual experience</p>
+                    <div class="text-3xl font-display font-bold text-white mb-6">35,000 <span class="text-sm text-primary">PKR</span></div>
+                    <ul class="space-y-3 text-sm text-gray-300 mb-6">
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> High-end design</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Custom animations & Premium visuals</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Advanced sections</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> WhatsApp ordering</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Portfolio & Reviews</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Advanced responsive design</li>
+                    </ul>
+                    <button onclick="openOrderModal('Premium Package - 35,000 PKR')" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all cursor-pointer">
+                        Order on WhatsApp
+                    </button>
+                </div>
+
+                <!-- Advanced -->
+                <div class="glow-card p-8 rounded-2xl reveal">
+                    <h4 class="text-lg font-display font-bold text-white mb-2">ADVANCED</h4>
+                    <p class="text-gray-400 text-xs mb-4">Custom dynamic database functionality</p>
+                    <div class="text-3xl font-display font-bold text-white mb-6">50,000 <span class="text-sm text-primary">PKR</span></div>
+                    <ul class="space-y-3 text-sm text-gray-300 mb-6">
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Custom functionality</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Database integration</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Advanced features</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Admin functionality where required</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Premium UI & Custom animations</li>
+                    </ul>
+                    <button onclick="openOrderModal('Advanced Package - 50,000 PKR')" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all cursor-pointer">
+                        Order on WhatsApp
+                    </button>
+                </div>
+
+                <!-- Enterprise -->
+                <div class="glow-card p-8 rounded-2xl reveal">
+                    <h4 class="text-lg font-display font-bold text-white mb-2">ENTERPRISE</h4>
+                    <p class="text-gray-400 text-xs mb-4">Large-scale commercial enterprise web system</p>
+                    <div class="text-3xl font-display font-bold text-white mb-6">75,000 <span class="text-sm text-primary">PKR</span></div>
+                    <ul class="space-y-3 text-sm text-gray-300 mb-6">
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Large business website</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Custom functionality & Advanced integrations</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Database & Admin features</li>
+                        <li class="flex items-center gap-2"><i class="fa-solid fa-check text-primary text-xs"></i> Premium support structure</li>
+                    </ul>
+                    <button onclick="openOrderModal('Enterprise Package - 75,000 PKR')" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all cursor-pointer">
+                        Order on WhatsApp
+                    </button>
+                </div>
+
+                <!-- Custom -->
+                <div class="glow-card p-8 rounded-2xl reveal border-2 border-secondary/50">
+                    <h4 class="text-lg font-display font-bold text-white mb-2">CUSTOM</h4>
+                    <p class="text-gray-400 text-xs mb-4">Built around your exact requirements</p>
+                    <div class="text-3xl font-display font-bold text-white mb-6">100,000+ <span class="text-sm text-primary">PKR</span></div>
+                    <p class="text-gray-400 text-sm mb-6">Complete enterprise web engineering, high-throughput microservices, custom APIs, and white-glove security deployment.</p>
+                    <button onclick="openOrderModal('Custom Package - 100,000+ PKR')" class="w-full bg-gradient-to-r from-secondary to-accent text-white px-6 py-3 rounded-xl font-semibold hover:shadow-[0_0_20px_rgba(112,0,255,0.4)] transition-all cursor-pointer">
+                        Discuss Custom Project
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Same Order Modal as services.html -->
+    <div id="orderModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-[#0F0F16] border border-primary/20 rounded-2xl p-8 max-w-lg w-full max-h-[90vh] overflow-y-auto relative">
+            <button onclick="closeOrderModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-gray-400 hover:text-white transition cursor-pointer">
+                <i class="fa-solid fa-times"></i>
+            </button>
+            <div class="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-4">INSTANT PROJECT INITIATION</div>
+            <h3 class="text-2xl font-display font-bold text-white mb-2">Start Your Project with <span class="text-gradient">TechNova</span></h3>
+            <p class="text-gray-400 text-sm mb-6">Fill out your requirements below for an instant WhatsApp consultation.</p>
+            <form id="orderForm" onsubmit="sendToWhatsApp(event)">
+                <div class="mb-4">
+                    <label class="block text-gray-300 text-sm mb-2">Your Full Name *</label>
+                    <input type="text" id="orderName" required placeholder="e.g. John Doe" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary focus:outline-none">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-300 text-sm mb-2">Phone / WhatsApp Number *</label>
+                    <input type="text" id="orderPhone" required placeholder="e.g. 0300 1234567" class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary focus:outline-none">
+                </div>
+                <div class="mb-6">
+                    <label class="block text-gray-300 text-sm mb-2">Project Scope & Notes</label>
+                    <textarea id="orderNotes" rows="4" placeholder="Tell us about your project..." class="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary focus:outline-none resize-none"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 rounded-xl font-semibold hover:shadow-[0_0_30px_rgba(16,185,129,0.4)] transition-all flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="fa-brands fa-whatsapp text-xl"></i> Send Inquiry on WhatsApp
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('active'); });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+        function openOrderModal(serviceName) {
+            document.getElementById('orderModal').classList.remove('hidden');
+            document.getElementById('orderNotes').value = `I'm interested in: ${serviceName}\n\nPlease provide more details.`;
+        }
+        function closeOrderModal() { document.getElementById('orderModal').classList.add('hidden'); }
+        document.getElementById('orderModal').addEventListener('click', function(e) { if (e.target === this) closeOrderModal(); });
+
+        let currentWhatsAppNumber = '';
+
+        async function fetchWhatsAppNumber() {
+            try {
+                const response = await fetch('/api/settings');
+                const data = await response.json();
+                const settings = data.data || data.settings || {};
+                if (settings.whatsappNumber) {
+                    currentWhatsAppNumber = settings.whatsappNumber;
+                    window.defaultWhatsAppNumber = settings.whatsappNumber;
+                }
+            } catch (error) {
+                console.error('Error fetching settings:', error);
+            }
+            return currentWhatsAppNumber;
+        }
+
+        async function sendToWhatsApp(e) {
+            e.preventDefault();
+            const name = document.getElementById('orderName').value;
+            const phone = document.getElementById('orderPhone').value;
+            const notes = document.getElementById('orderNotes').value;
+
+            let rawNumber = currentWhatsAppNumber || window.defaultWhatsAppNumber;
+            if (!rawNumber) {
+                rawNumber = await fetchWhatsAppNumber();
+            }
+
+            let cleanNumber = (rawNumber || '').replace(/[^0-9]/g, '');
+            if (cleanNumber.startsWith('0') && cleanNumber.length === 11) {
+                cleanNumber = '92' + cleanNumber.substring(1);
+            }
+
+            if (!cleanNumber) {
+                alert('⚠️ WhatsApp number is not configured in Admin Settings. Please contact via email or admin portal.');
+                return;
+            }
+
+            const message = `*New Project Inquiry*%0A%0A*Name:* ${encodeURIComponent(name)}%0A*Phone:* ${encodeURIComponent(phone)}%0A%0A*Project Details:*%0A${encodeURIComponent(notes)}`;
+            window.open(`https://wa.me/${cleanNumber}?text=${message}`, '_blank');
+            closeOrderModal();
+            document.getElementById('orderForm').reset();
+        }
+    </script>
+<script>
+        // Load Settings from Backend
+        async function loadWebsiteSettings() {
+            try {
+                const response = await fetch('/api/settings');
+                const data = await response.json();
+                
+                if (data.success && (data.settings || data.data)) {
+                    const settings = data.data || data.settings;
+                    
+                    // Update Company Name
+                    if (settings.companyName) {
+                        document.querySelectorAll('#companyName, .company-name').forEach(el => {
+                            el.textContent = settings.companyName;
+                        });
+                        document.title = settings.companyName + ' - Premium Software Agency';
+                    }
+                    
+                    // Update Tagline/Headline
+                    if (settings.tagline) {
+                        const headline = document.querySelector('.headline-text');
+                        if (headline) headline.textContent = settings.tagline;
+                    }
+                    
+                    // Update Subheading
+                    if (settings.subheading) {
+                        const subheading = document.querySelector('.subheading-text');
+                        if (subheading) subheading.textContent = settings.subheading;
+                    }
+                    
+                    // Update Availability Status
+                    if (settings.availabilityStatus) {
+                        const status = document.querySelector('.availability-status');
+                        if (status) status.textContent = settings.availabilityStatus;
+                    }
+                    
+                    // Update WhatsApp Number
+                    if (settings.whatsappNumber) {
+                        currentWhatsAppNumber = settings.whatsappNumber;
+                        window.defaultWhatsAppNumber = settings.whatsappNumber;
+                    }
+                    
+                    console.log('✅ Website settings loaded from backend');
+                }
+            } catch (error) {
+                console.error('Error loading settings:', error);
+            }
+        }
+
+document.addEventListener('DOMContentLoaded', loadWebsiteSettings);
+</script>
+<script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Team - Nexora</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <meta name="description" content="Nexora - Premium Web Development Agency" />
+  <meta property="og:title" content="Nexora" />
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand">
+  <svg class="logo-svg" width="36" height="36" viewBox="0 0 100 100">
+    <defs>
+      <linearGradient id="logoGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" style="stop-color:#00d4ff" />
+        <stop offset="100%" style="stop-color:#0033aa" />
+      </linearGradient>
+    </defs>
+    <path d="M 15 85 L 15 15 L 30 15 L 65 65 L 65 15 L 85 15 L 85 85 L 70 85 L 35 35 L 35 85 Z" 
+          fill="url(#logoGrad2)" stroke="#00d4ff" stroke-width="1"/>
+  </svg>
+  <span class="name">Nexora</span>
+</a>
+    <div class="navbar-links">
+      <a href="index.html">Home</a>
+      <a href="services.html">Services</a>
+      <a href="pricing.html">Pricing</a>
+      <a href="portfolio.html">Portfolio</a>
+      <a href="team.html" class="active">Team</a>
+      <a href="reviews.html">Reviews</a>
+      <a href="contact.html">Contact</a>
+    </div>
+    <div class="navbar-actions">
+      <a href="contact.html" class="btn-quote">🚀 Get a Quote</a>
+      <button class="btn-whatsapp">💬 WhatsApp ▾</button>
+      <a href="admin-login.html" class="btn-admin">🔒 Admin</a>
+    </div>
+  </nav>
+
+  <div class="page-content">
+    <section class="section">
+      <div style="text-align:center;">
+        <span class="section-badge">Leadership & Engineering</span>
+        <h2 class="section-title">Meet the Architects Behind <span>TechNova</span></h2>
+        <p class="section-subtitle">Elite engineers, product architects, and design strategists delivering world-class technical execution.</p>
+      </div>
+      <div class="card-grid" id="teamGrid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr));">
+        <!-- Team cards yahan dynamically load honge -->
+      </div>
+    </section>
+  </div>
+
+  <footer class="footer">
+    <p>© 2024 Nexora. All rights reserved. | <a href="contact.html">Contact Us</a></p>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    loadTeamPage();
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', loadTeamPage);
+    }
+  </script>
+</body>
+</html>
