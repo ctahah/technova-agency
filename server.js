@@ -2209,6 +2209,22 @@ app.delete('/api/admin/inquiries/:id', authenticateToken, validateIdParam, delet
 app.delete('/api/leads/:id', authenticateToken, validateIdParam, deleteInquiryHandler);
 app.delete('/api/inquiries/:id', authenticateToken, validateIdParam, deleteInquiryHandler);
 
+// Static Files & SEO Endpoints
+app.use(express.static(path.join(__dirname, 'public'), {
+  dotfiles: 'ignore',
+  index: false
+}));
+
+app.get('/sitemap.xml', (req, res) => {
+  res.type('application/xml');
+  res.sendFile(path.join(__dirname, 'public', 'sitemap.xml'));
+});
+
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain');
+  res.sendFile(path.join(__dirname, 'public', 'robots.txt'));
+});
+
 // Page Routes
 app.get('/login', (req, res) => res.sendFile(path.join(__dirname, 'public', 'login.html')));
 app.get('/admin-login.html', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin-login.html')));
