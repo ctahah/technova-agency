@@ -705,6 +705,11 @@ body::after {
    MOBILE & TABLET RESPONSIVE SYSTEM (Desktop Remains 100% Frozen & Intact)
    ========================================================================== */
 
+/* Mobile Header WhatsApp Button (Hidden on Desktop) */
+.mobile-header-wa {
+  display: none !important;
+}
+
 /* Mobile Hamburger Toggle Button (Hidden on Desktop) */
 .mobile-menu-toggle {
   display: none;
@@ -803,6 +808,9 @@ body::after {
 @media (max-width: 1023px) {
   .navbar {
     padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .navbar-links,
@@ -810,8 +818,44 @@ body::after {
     display: none !important;
   }
 
+  /* Mobile Header WhatsApp Button (Placed between Logo & Hamburger) */
+  .mobile-header-wa {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: rgba(37, 211, 102, 0.15) !important;
+    border: 1px solid rgba(37, 211, 102, 0.35) !important;
+    border-radius: 8px;
+    color: #25d366 !important;
+    font-weight: 600;
+    font-size: 13px;
+    line-height: 1;
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.25s ease;
+    margin-left: auto;
+    margin-right: 10px;
+    flex-shrink: 0;
+    z-index: 1002;
+  }
+
+  .mobile-header-wa:hover,
+  .mobile-header-wa:active {
+    background: rgba(37, 211, 102, 0.28) !important;
+    border-color: #25d366 !important;
+    transform: scale(1.02);
+  }
+
+  .mobile-header-wa span {
+    display: inline-block;
+    vertical-align: middle;
+  }
+
   .mobile-menu-toggle {
     display: flex;
+    flex-shrink: 0;
   }
 
   /* Hero Section */
@@ -919,13 +963,16 @@ body::after {
   /* WhatsApp Dropdown Mobile */
   .whatsapp-dropdown {
     position: fixed !important;
-    top: auto !important;
-    bottom: 20px !important;
-    left: 20px !important;
-    right: 20px !important;
-    max-height: 70vh;
+    top: 68px !important;
+    bottom: auto !important;
+    left: 14px !important;
+    right: 14px !important;
+    max-height: calc(100vh - 85px);
     overflow-y: auto;
     min-width: auto !important;
+    z-index: 2005 !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85);
+    border: 1px solid rgba(0, 200, 255, 0.25);
   }
 }
 
@@ -948,7 +995,7 @@ body::after {
   }
 
   .stats-grid {
-    grid-template-columns: 1fr 1fr !important;
+    grid-template-columns: 1fr !important;
     gap: 12px !important;
   }
 
@@ -987,6 +1034,39 @@ body::after {
   .footer {
     padding: 30px 20px !important;
     font-size: 12px !important;
+  }
+}
+
+/* ULTRA-COMPACT MOBILE BREAKPOINT (320px - 380px) */
+@media (max-width: 380px) {
+  .navbar {
+    padding: 10px 12px !important;
+  }
+
+  .navbar-brand .name {
+    font-size: 16px !important;
+  }
+
+  .navbar-brand .logo-svg {
+    width: 30px !important;
+    height: 30px !important;
+  }
+
+  .mobile-header-wa {
+    padding: 6px 9px !important;
+    font-size: 12px !important;
+    gap: 4px !important;
+    margin-right: 8px !important;
+  }
+
+  .mobile-header-wa .wa-arrow {
+    display: none !important;
+  }
+
+  .mobile-menu-toggle {
+    width: 38px !important;
+    height: 38px !important;
+    font-size: 18px !important;
   }
 }
 

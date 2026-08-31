@@ -23,20 +23,44 @@ if (document.readyState === 'loading') {
 // 1. NAVBAR & MOBILE DRAWER INITIALIZATION
 // ============================================
 function initNavbar() {
-  const navbar = document.querySelector('.navbar');
-  if (!navbar) return;
+  const navbars = document.querySelectorAll('.navbar, .glass-nav');
+  if (!navbars || navbars.length === 0) return;
 
-  // 1. Check or create Mobile Hamburger Toggle Button
-  let toggleBtn = document.querySelector('.mobile-menu-toggle');
-  if (!toggleBtn) {
-    toggleBtn = document.createElement('button');
-    toggleBtn.className = 'mobile-menu-toggle';
-    toggleBtn.setAttribute('aria-label', 'Toggle Navigation');
-    toggleBtn.innerHTML = '☰';
-    navbar.appendChild(toggleBtn);
-  }
+  navbars.forEach(navbar => {
+    const targetParent = navbar.querySelector('.max-w-7xl') || navbar;
 
-  // 2. Check or create Mobile Navigation Drawer
+    // 1. Check or create Mobile Header WhatsApp Button (Between Logo and Hamburger)
+    let mobileWaHeaderBtn = targetParent.querySelector('.mobile-header-wa');
+    if (!mobileWaHeaderBtn) {
+      mobileWaHeaderBtn = document.createElement('button');
+      mobileWaHeaderBtn.className = 'btn-whatsapp mobile-header-wa';
+      mobileWaHeaderBtn.setAttribute('aria-label', 'Contact on WhatsApp');
+      mobileWaHeaderBtn.innerHTML = '<span>💬</span> <span class="wa-label">WhatsApp</span> <span class="wa-arrow">▾</span>';
+      targetParent.appendChild(mobileWaHeaderBtn);
+    }
+
+    // 2. Check or create Mobile Hamburger Toggle Button
+    let toggleBtn = targetParent.querySelector('.mobile-menu-toggle');
+    if (!toggleBtn) {
+      toggleBtn = document.createElement('button');
+      toggleBtn.className = 'mobile-menu-toggle';
+      toggleBtn.setAttribute('aria-label', 'Toggle Navigation');
+      toggleBtn.innerHTML = '☰';
+      targetParent.appendChild(toggleBtn);
+    }
+
+    // Toggle drawer on click
+    toggleBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const drawer = document.querySelector('.mobile-nav-drawer');
+      if (drawer) {
+        drawer.classList.toggle('active');
+        toggleBtn.innerHTML = drawer.classList.contains('active') ? '✕' : '☰';
+      }
+    });
+  });
+
+  // 3. Check or create Mobile Navigation Drawer (Global Singleton)
   let drawer = document.querySelector('.mobile-nav-drawer');
   if (!drawer) {
     drawer = document.createElement('div');
@@ -63,18 +87,17 @@ function initNavbar() {
     document.body.appendChild(drawer);
   }
 
-  // Toggle drawer on click
-  toggleBtn.addEventListener('click', function(e) {
-    e.stopPropagation();
-    drawer.classList.toggle('active');
-    toggleBtn.innerHTML = drawer.classList.contains('active') ? '✕' : '☰';
-  });
-
   // Close drawer on click outside
   document.addEventListener('click', function(e) {
-    if (!drawer.contains(e.target) && !toggleBtn.contains(e.target)) {
+    const toggleBtns = document.querySelectorAll('.mobile-menu-toggle');
+    let clickedToggle = false;
+    toggleBtns.forEach(tb => {
+      if (tb.contains(e.target)) clickedToggle = true;
+    });
+
+    if (drawer && !drawer.contains(e.target) && !clickedToggle) {
       drawer.classList.remove('active');
-      toggleBtn.innerHTML = '☰';
+      toggleBtns.forEach(tb => { tb.innerHTML = '☰'; });
     }
   });
 
@@ -83,9 +106,9 @@ function initNavbar() {
   if (mobileWaBtn) {
     mobileWaBtn.addEventListener('click', function(e) {
       e.stopPropagation();
-      const whatsappBtn = document.querySelector('.navbar .btn-whatsapp') || document.getElementById('whatsappBtn');
-      if (whatsappBtn) {
-        whatsappBtn.click();
+      const anyWaBtn = document.querySelector('.navbar .btn-whatsapp') || document.querySelector('.mobile-header-wa');
+      if (anyWaBtn) {
+        anyWaBtn.click();
       }
     });
   }
@@ -137,31 +160,37 @@ function fetchTeamData(forceRefresh = false) {
 // 3. WHATSAPP DROPDOWN
 // ============================================
 async function loadWhatsAppDropdown() {
-  const whatsappBtn = document.querySelector('.navbar .btn-whatsapp') || document.getElementById('whatsappDropdownBtn');
-  if (!whatsappBtn) return;
-
   let dropdown = document.getElementById('whatsappDropdown') || document.getElementById('whatsappMenu');
   if (!dropdown) {
     dropdown = document.createElement('div');
     dropdown.id = 'whatsappDropdown';
     dropdown.className = 'whatsapp-dropdown';
-    if (whatsappBtn.parentElement) {
-      whatsappBtn.parentElement.style.position = 'relative';
-      whatsappBtn.parentElement.appendChild(dropdown);
-    }
+    document.body.appendChild(dropdown);
   }
 
-  // Toggle on click
-  whatsappBtn.addEventListener('click', function(e) {
-    e.stopPropagation();
-    dropdown.classList.toggle('show');
-    dropdown.classList.toggle('active');
+  // Bind click handler to all WhatsApp buttons across the DOM
+  const allWaButtons = document.querySelectorAll('.btn-whatsapp');
+  allWaButtons.forEach(btn => {
+    if (btn.dataset.waAttached) return;
+    btn.dataset.waAttached = 'true';
+
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      dropdown.classList.toggle('show');
+      dropdown.classList.toggle('active');
+    });
   });
 
   // Close on outside click
-  document.addEventListener('click', function() {
-    dropdown.classList.remove('show');
-    dropdown.classList.remove('active');
+  document.addEventListener('click', function(e) {
+    let clickedWaBtn = false;
+    allWaButtons.forEach(btn => {
+      if (btn.contains(e.target)) clickedWaBtn = true;
+    });
+    if (!dropdown.contains(e.target) && !clickedWaBtn) {
+      dropdown.classList.remove('show');
+      dropdown.classList.remove('active');
+    }
   });
 
   // Fetch data via singleton
