@@ -12,6 +12,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const cloudinary = require('cloudinary').v2;
 
 process.on('uncaughtException', (err) => {
   console.error('⚠️ Uncaught Exception:', err.message);
@@ -20,6 +21,82 @@ process.on('uncaughtException', (err) => {
 process.on('unhandledRejection', (reason, promise) => {
   console.error('⚠️ Unhandled Rejection at:', promise, 'reason:', reason);
 });
+
+// Configure Cloudinary persistent storage from CLOUDINARY_URL
+if (process.env.CLOUDINARY_URL) {
+  try {
+    cloudinary.config(true);
+    cloudinary.config({
+      secure: true
+    });
+    console.log('☁️ Cloudinary persistent image storage configured from CLOUDINARY_URL');
+  } catch (err) {
+    console.error('⚠️ Cloudinary configuration error:', err.message);
+  }
+}
+
+const isCloudinaryActive = () => {
+  return Boolean(process.env.CLOUDINARY_URL || (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY));
+};
+
+const extractPublicIdFromUrl = (url) => {
+  if (!url || typeof url !== 'string') return '';
+  if (!url.includes('cloudinary.com')) return '';
+  try {
+    const parts = url.split('/upload/');
+    if (parts.length > 1) {
+      let pathPart = parts[1];
+      pathPart = pathPart.replace(/^v\d+\//, '');
+      const lastDotIndex = pathPart.lastIndexOf('.');
+      if (lastDotIndex !== -1) {
+        pathPart = pathPart.substring(0, lastDotIndex);
+      }
+      return pathPart;
+    }
+  } catch (e) {}
+  return '';
+};
+
+const uploadBufferToCloudinary = async (buffer, folder = 'common', filename = '') => {
+  if (!isCloudinaryActive()) {
+    throw new Error('Cloudinary is not configured in environment.');
+  }
+
+  return new Promise((resolve, reject) => {
+    const uploadOptions = {
+      folder: `technova/${folder}`,
+      resource_type: 'image',
+      overwrite: true
+    };
+    if (filename) {
+      uploadOptions.public_id = filename.replace(/\.[^/.]+$/, '');
+    }
+
+    const stream = cloudinary.uploader.upload_stream(uploadOptions, (err, result) => {
+      if (err) {
+        console.error('❌ Cloudinary stream upload failed:', err.message);
+        return reject(err);
+      }
+      resolve({
+        url: result.secure_url || result.url,
+        secure_url: result.secure_url || result.url,
+        public_id: result.public_id
+      });
+    });
+
+    stream.end(buffer);
+  });
+};
+
+const deleteCloudinaryAsset = async (publicId) => {
+  if (!publicId || !isCloudinaryActive()) return;
+  try {
+    const result = await cloudinary.uploader.destroy(publicId);
+    console.log(`🗑️ Cloudinary asset deleted: "${publicId}" | Result: ${result?.result || 'ok'}`);
+  } catch (err) {
+    console.warn(`⚠️ Cloudinary deletion error for "${publicId}":`, err.message);
+  }
+};
 
 const app = express();
 
@@ -49,7 +126,7 @@ const isValidImageBuffer = (buffer) => {
   }
 
   // GIF: GIF87a or GIF89a (47 49 46 38)
-  if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x38) {
+  if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46 || (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x38)) {
     return 'gif';
   }
 
@@ -70,72 +147,113 @@ const sanitizeSubfolder = (subfolder) => {
   return ALLOWED_UPLOAD_SUBFOLDERS.includes(clean) ? clean : 'common';
 };
 
-// Helper to convert base64 image strings into static disk files automatically
-const saveBase64Image = (dataString, subfolder = 'common', prefix = 'img') => {
+// Helper to handle and upload images (Cloudinary with local fallback)
+const saveOrUploadImage = async (dataString, subfolder = 'common', prefix = 'img') => {
   if (!dataString || typeof dataString !== 'string') {
-    return '';
+    return { imageUrl: '', publicId: '' };
   }
 
-  // If already a safe existing URL path, return it after path traversal check
-  if (dataString.startsWith('/uploads/') || dataString.startsWith('http://') || dataString.startsWith('https://')) {
-    if (dataString.includes('..') || dataString.includes('%2e%2e')) return '';
-    return dataString;
+  const trimmed = dataString.trim();
+
+  // If already a remote URL (Cloudinary, Unsplash, external, etc.)
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+    const pubId = extractPublicIdFromUrl(trimmed);
+    return { imageUrl: trimmed, publicId: pubId };
   }
 
-  if (!dataString.startsWith('data:image/')) {
-    return dataString;
+  // If existing local /uploads/ URL
+  if (trimmed.startsWith('/uploads/')) {
+    if (trimmed.includes('..') || trimmed.includes('%2e%2e')) {
+      return { imageUrl: '', publicId: '' };
+    }
+    return { imageUrl: trimmed, publicId: '' };
+  }
+
+  // Not a base64 string
+  if (!trimmed.startsWith('data:image/')) {
+    return { imageUrl: trimmed, publicId: '' };
   }
 
   try {
-    const matches = dataString.match(/^data:image\/(jpeg|jpg|png|webp|gif);base64,(.+)$/i);
+    const matches = trimmed.match(/^data:image\/(jpeg|jpg|png|webp|gif);base64,(.+)$/i);
     if (!matches) {
-      console.warn('⚠️ Rejected base64 image: invalid data URI format or disallowed mime type.');
-      return '';
+      console.warn('⚠️ Rejected base64 image: invalid data URI format.');
+      return { imageUrl: '', publicId: '' };
     }
 
     const base64Data = matches[2];
-    
-    // Check length (max 14MB base64 string -> approx 10MB binary)
     if (base64Data.length > 14 * 1024 * 1024) {
-      console.warn('⚠️ Rejected base64 image: payload exceeds size limit.');
-      return '';
+      console.warn('⚠️ Rejected base64 image: payload exceeds 10MB binary limit.');
+      return { imageUrl: '', publicId: '' };
     }
 
     const buffer = Buffer.from(base64Data, 'base64');
-    if (buffer.length > 10 * 1024 * 1024) {
-      console.warn('⚠️ Rejected base64 image: decoded file exceeds 10MB limit.');
-      return '';
-    }
-
-    // Verify real image binary signature
     const detectedType = isValidImageBuffer(buffer);
     if (!detectedType) {
-      console.warn('⚠️ Rejected base64 image: payload binary signature is not a valid image.');
-      return '';
+      console.warn('⚠️ Rejected base64 image: payload binary signature invalid.');
+      return { imageUrl: '', publicId: '' };
     }
 
     const safeFolder = sanitizeSubfolder(subfolder);
     const safePrefix = String(prefix || 'img').replace(/[^a-zA-Z0-9_-]/g, '').toLowerCase() || 'img';
+    const ext = detectedType === 'jpeg' ? 'jpg' : detectedType;
+    const uniqueName = `${safePrefix}-${Date.now()}-${crypto.randomBytes(6).toString('hex')}`;
+
+    // 1. Try Cloudinary first if active
+    if (isCloudinaryActive()) {
+      try {
+        const cloudResult = await uploadBufferToCloudinary(buffer, safeFolder, uniqueName);
+        console.log(`☁️ Uploaded base64 image to Cloudinary: ${cloudResult.secure_url}`);
+        return {
+          imageUrl: cloudResult.secure_url,
+          publicId: cloudResult.public_id
+        };
+      } catch (cloudErr) {
+        console.error('⚠️ Cloudinary upload failed, using local storage fallback:', cloudErr.message);
+      }
+    }
+
+    // 2. Fallback to local /uploads/ storage
     const targetDir = path.resolve(uploadsRootDir, safeFolder);
+    if (!targetDir.startsWith(uploadsRootDir)) return { imageUrl: '', publicId: '' };
+    if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
 
-    // Strict path containment check
-    if (!targetDir.startsWith(uploadsRootDir)) {
-      console.error('⚠️ Path traversal attempt blocked in saveBase64Image');
-      return '';
-    }
+    const safeFilename = `${uniqueName}.${ext}`;
+    const filePath = path.join(targetDir, safeFilename);
+    fs.writeFileSync(filePath, buffer);
 
-    if (!fs.existsSync(targetDir)) {
-      fs.mkdirSync(targetDir, { recursive: true });
-    }
+    return {
+      imageUrl: `/uploads/${safeFolder}/${safeFilename}`,
+      publicId: ''
+    };
+  } catch (err) {
+    console.error('saveOrUploadImage processing error:', err);
+    return { imageUrl: '', publicId: '' };
+  }
+};
 
+// Backwards compatibility alias for synchronous calls
+const saveBase64Image = (dataString, subfolder = 'common', prefix = 'img') => {
+  if (!dataString || typeof dataString !== 'string') return '';
+  if (dataString.startsWith('http://') || dataString.startsWith('https://') || dataString.startsWith('/uploads/')) {
+    return dataString;
+  }
+  try {
+    const matches = dataString.match(/^data:image\/(jpeg|jpg|png|webp|gif);base64,(.+)$/i);
+    if (!matches) return '';
+    const buffer = Buffer.from(matches[2], 'base64');
+    const detectedType = isValidImageBuffer(buffer);
+    if (!detectedType) return '';
+    const safeFolder = sanitizeSubfolder(subfolder);
+    const safePrefix = String(prefix || 'img').replace(/[^a-zA-Z0-9_-]/g, '').toLowerCase() || 'img';
+    const targetDir = path.resolve(uploadsRootDir, safeFolder);
+    if (!targetDir.startsWith(uploadsRootDir)) return '';
+    if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
     const ext = detectedType === 'jpeg' ? 'jpg' : detectedType;
     const safeFilename = `${safePrefix}-${Date.now()}-${crypto.randomBytes(6).toString('hex')}.${ext}`;
-    const filePath = path.join(targetDir, safeFilename);
-
-    fs.writeFileSync(filePath, buffer);
+    fs.writeFileSync(path.join(targetDir, safeFilename), buffer);
     return `/uploads/${safeFolder}/${safeFilename}`;
-  } catch (err) {
-    console.error('saveBase64Image processing error:', err);
+  } catch (e) {
     return '';
   }
 };
@@ -717,6 +835,7 @@ const ServiceSchema = new mongoose.Schema({
   description: { type: String, required: true },
   icon: { type: String, default: 'code' },
   image: { type: String, default: '' },
+  imagePublicId: { type: String, default: '' },
   price: { type: String, default: '' },
   badge: { type: String, default: '' },
   category: { type: String, default: '' },
@@ -736,6 +855,7 @@ const PortfolioSchema = new mongoose.Schema({
   title: { type: String, required: true },
   category: { type: String, default: 'Web' },
   image: { type: String, default: '' },
+  imagePublicId: { type: String, default: '' },
   description: { type: String, required: true },
   technologies: [{ type: String }],
   demoUrl: { type: String, default: '' },
@@ -768,6 +888,10 @@ const TeamSchema = new mongoose.Schema({
     type: String,
     default: 'https://via.placeholder.com/150'
   },
+  imagePublicId: {
+    type: String,
+    default: ''
+  },
   order: {
     type: Number,
     default: 0
@@ -798,6 +922,7 @@ const ReviewSchema = new mongoose.Schema({
   testimonial: { type: String, default: '' },
   image: { type: String, default: '' },
   avatar: { type: String, default: '' },
+  imagePublicId: { type: String, default: '' },
   isFeatured: { type: Boolean, default: false },
   isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now }
@@ -1208,9 +1333,9 @@ app.get('/api/admin/verify', authenticateToken, (req, res) => {
 });
 
 
-// Image Upload Route (Protected & Hardened)
+// Image Upload Route (Protected & Hardened with Cloudinary Persistent Storage)
 app.post('/api/admin/upload-image', authenticateToken, (req, res) => {
-  upload.single('image')(req, res, (err) => {
+  upload.single('image')(req, res, async (err) => {
     if (err) {
       return res.status(400).json({ success: false, message: err.message || 'File upload error' });
     }
@@ -1236,12 +1361,35 @@ app.post('/api/admin/upload-image', authenticateToken, (req, res) => {
       }
 
       const folder = sanitizeSubfolder(req.body?.folder || req.query?.folder || 'team');
-      const imageUrl = `/uploads/${folder}/${req.file.filename}`;
 
+      // Upload to Cloudinary if configured
+      if (isCloudinaryActive()) {
+        try {
+          const cloudResult = await uploadBufferToCloudinary(buffer, folder, req.file.filename);
+          if (fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+          }
+          return res.json({
+            success: true,
+            message: 'Image uploaded to Cloudinary successfully!',
+            imageUrl: cloudResult.secure_url,
+            url: cloudResult.secure_url,
+            public_id: cloudResult.public_id,
+            imagePublicId: cloudResult.public_id
+          });
+        } catch (cloudErr) {
+          console.error('Cloudinary upload error:', cloudErr.message);
+          // Fall through to local fallback if Cloudinary fails
+        }
+      }
+
+      const imageUrl = `/uploads/${folder}/${req.file.filename}`;
       return res.json({ 
         success: true, 
         message: 'Image uploaded successfully!',
-        imageUrl 
+        imageUrl,
+        url: imageUrl,
+        public_id: ''
       });
     } catch (readErr) {
       if (req.file && fs.existsSync(req.file.path)) {
@@ -1423,7 +1571,7 @@ const addServiceHandler = async (req, res) => {
     const cleanIcon = sanitizeText(icon || 'code', 50);
     const formattedFeatures = parseStringList(features).map(f => sanitizeText(f, 100)).filter(Boolean);
 
-    const finalImage = saveBase64Image(image, 'services', 'service');
+    const { imageUrl: finalImage, publicId: finalPublicId } = await saveOrUploadImage(image, 'services', 'service');
     invalidateServicesCache();
 
     if (mongoose.connection.readyState === 1) {
@@ -1434,6 +1582,7 @@ const addServiceHandler = async (req, res) => {
         price: cleanPrice,
         icon: cleanIcon,
         image: finalImage || '',
+        imagePublicId: finalPublicId || '',
         description: cleanDesc,
         features: formattedFeatures,
         order: Math.max(0, parseInt(order) || 0),
@@ -1458,6 +1607,7 @@ const addServiceHandler = async (req, res) => {
       price: cleanPrice,
       icon: cleanIcon,
       image: finalImage || '',
+      imagePublicId: finalPublicId || '',
       description: cleanDesc,
       features: formattedFeatures,
       order: Math.max(0, parseInt(order) || 0),
@@ -1492,7 +1642,12 @@ const updateServiceHandler = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Service ID is required' });
     }
 
-    const finalImage = image !== undefined ? saveBase64Image(image, 'services', 'service') : undefined;
+    let finalImage, finalPublicId;
+    if (image !== undefined) {
+      const imgRes = await saveOrUploadImage(image, 'services', 'service');
+      finalImage = imgRes.imageUrl;
+      finalPublicId = imgRes.publicId;
+    }
     invalidateServicesCache();
 
     if (mongoose.connection.readyState === 1) {
@@ -1504,7 +1659,10 @@ const updateServiceHandler = async (req, res) => {
       }
       if (price !== undefined) updateData.price = price;
       if (icon !== undefined) updateData.icon = icon;
-      if (finalImage !== undefined) updateData.image = finalImage;
+      if (finalImage !== undefined) {
+        updateData.image = finalImage;
+        updateData.imagePublicId = finalPublicId;
+      }
       if (description !== undefined) updateData.description = description;
       if (formattedFeatures !== undefined) updateData.features = formattedFeatures;
       if (order !== undefined) updateData.order = order;
@@ -1530,7 +1688,7 @@ const updateServiceHandler = async (req, res) => {
         ...(badge !== undefined || category !== undefined && { badge: badge || category, category: category || badge }),
         ...(price !== undefined && { price }),
         ...(icon !== undefined && { icon }),
-        ...(finalImage !== undefined && { image: finalImage }),
+        ...(finalImage !== undefined && { image: finalImage, imagePublicId: finalPublicId }),
         ...(description !== undefined && { description }),
         ...(formattedFeatures !== undefined && { features: formattedFeatures }),
         ...(order !== undefined && { order })
@@ -1560,6 +1718,14 @@ const deleteServiceHandler = async (req, res) => {
     invalidateServicesCache();
 
     if (mongoose.connection.readyState === 1) {
+      const s = await Service.findById(targetId);
+      if (s) {
+        if (s.imagePublicId) {
+          await deleteCloudinaryAsset(s.imagePublicId);
+        } else if (s.image) {
+          await deleteCloudinaryAsset(extractPublicIdFromUrl(s.image));
+        }
+      }
       await Service.findByIdAndUpdate(targetId, { isActive: false }).maxTimeMS(5000);
       return res.json({ success: true, message: 'Service deleted!' });
     }
@@ -1599,13 +1765,14 @@ app.post('/api/admin/portfolio', authenticateToken, async (req, res) => {
   try {
     const { title, category, image, description, technologies, techStack, demoUrl, liveLink } = req.body;
     const formattedTech = parseStringList(technologies || techStack);
-    const finalImage = saveBase64Image(image, 'projects', 'project') || '';
+    const { imageUrl: finalImage, publicId: finalPublicId } = await saveOrUploadImage(image, 'projects', 'project');
 
     if (mongoose.connection.readyState === 1) {
       const project = new Portfolio({
         title,
         category: category || 'Web',
-        image: finalImage,
+        image: finalImage || '',
+        imagePublicId: finalPublicId || '',
         description,
         technologies: formattedTech,
         demoUrl: demoUrl || liveLink || ''
@@ -1625,7 +1792,8 @@ app.post('/api/admin/portfolio', authenticateToken, async (req, res) => {
       id: 'proj_' + Date.now(),
       title,
       category: category || 'Web',
-      image: finalImage,
+      image: finalImage || '',
+      imagePublicId: finalPublicId || '',
       description,
       technologies: formattedTech,
       demoUrl: demoUrl || liveLink || '',
@@ -1649,13 +1817,22 @@ app.put('/api/admin/portfolio/:id', authenticateToken, validateIdParam, async (r
   try {
     const { title, category, image, description, technologies, techStack, demoUrl, liveLink } = req.body;
     const formattedTech = (technologies !== undefined || techStack !== undefined) ? parseStringList(technologies || techStack) : undefined;
-    const finalImage = image !== undefined ? saveBase64Image(image, 'projects', 'project') : undefined;
+    
+    let finalImage, finalPublicId;
+    if (image !== undefined) {
+      const imgRes = await saveOrUploadImage(image, 'projects', 'project');
+      finalImage = imgRes.imageUrl;
+      finalPublicId = imgRes.publicId;
+    }
 
     if (mongoose.connection.readyState === 1) {
       const updateData = {};
       if (title !== undefined) updateData.title = sanitizeText(title, 150);
       if (category !== undefined) updateData.category = sanitizeText(category, 100);
-      if (finalImage !== undefined) updateData.image = finalImage;
+      if (finalImage !== undefined) {
+        updateData.image = finalImage;
+        updateData.imagePublicId = finalPublicId;
+      }
       if (description !== undefined) updateData.description = sanitizeText(description, 2000);
       if (formattedTech !== undefined) updateData.technologies = formattedTech;
       if (demoUrl !== undefined || liveLink !== undefined) updateData.demoUrl = sanitizeText(demoUrl || liveLink, 300);
@@ -1679,7 +1856,7 @@ app.put('/api/admin/portfolio/:id', authenticateToken, validateIdParam, async (r
         ...fallbackPortfolio[idx],
         ...(title !== undefined && { title: sanitizeText(title, 150) }),
         ...(category !== undefined && { category: sanitizeText(category, 100) }),
-        ...(finalImage !== undefined && { image: finalImage }),
+        ...(finalImage !== undefined && { image: finalImage, imagePublicId: finalPublicId }),
         ...(description !== undefined && { description: sanitizeText(description, 2000) }),
         ...(formattedTech !== undefined && { technologies: formattedTech }),
         ...((demoUrl !== undefined || liveLink !== undefined) && { demoUrl: sanitizeText(demoUrl || liveLink, 300) })
@@ -1697,7 +1874,15 @@ app.put('/api/admin/portfolio/:id', authenticateToken, validateIdParam, async (r
 app.delete('/api/admin/portfolio/:id', authenticateToken, validateIdParam, async (req, res) => {
   try {
     if (mongoose.connection.readyState === 1) {
-      await Portfolio.findByIdAndDelete(req.params.id);
+      const p = await Portfolio.findById(req.params.id);
+      if (p) {
+        if (p.imagePublicId) {
+          await deleteCloudinaryAsset(p.imagePublicId);
+        } else if (p.image) {
+          await deleteCloudinaryAsset(extractPublicIdFromUrl(p.image));
+        }
+        await Portfolio.findByIdAndDelete(req.params.id);
+      }
       return res.json({ success: true, message: 'Portfolio deleted!' });
     }
 
@@ -1756,7 +1941,8 @@ app.get('/api/admin/team', authenticateToken, getTeamHandler);
 app.post('/api/admin/team', authenticateToken, async (req, res) => {
   try {
     const { name, role, whatsappNumber, image, description, isFeatured, order } = req.body;
-    const finalImage = saveBase64Image(image, 'team', 'team') || 'https://via.placeholder.com/150';
+    const { imageUrl: finalImage, publicId: finalPublicId } = await saveOrUploadImage(image, 'team', 'team');
+    const assignedImage = finalImage || 'https://via.placeholder.com/150';
     invalidateTeamCache();
 
     if (mongoose.connection.readyState === 1) {
@@ -1764,7 +1950,8 @@ app.post('/api/admin/team', authenticateToken, async (req, res) => {
         name, 
         role, 
         whatsappNumber, 
-        image: finalImage, 
+        image: assignedImage, 
+        imagePublicId: finalPublicId || '',
         description: description || '',
         order: order || 0,
         isFeatured: Boolean(isFeatured)
@@ -1780,7 +1967,8 @@ app.post('/api/admin/team', authenticateToken, async (req, res) => {
       name,
       role,
       whatsappNumber,
-      image: finalImage,
+      image: assignedImage,
+      imagePublicId: finalPublicId || '',
       description: description || '',
       order: order || 0,
       isFeatured: Boolean(isFeatured),
@@ -1799,7 +1987,13 @@ app.post('/api/admin/team', authenticateToken, async (req, res) => {
 app.put('/api/admin/team/:id', authenticateToken, validateIdParam, async (req, res) => {
   try {
     const { name, role, whatsappNumber, image, description, isFeatured, order } = req.body;
-    const finalImage = image !== undefined ? saveBase64Image(image, 'team', 'team') : undefined;
+    
+    let finalImage, finalPublicId;
+    if (image !== undefined) {
+      const imgRes = await saveOrUploadImage(image, 'team', 'team');
+      finalImage = imgRes.imageUrl;
+      finalPublicId = imgRes.publicId;
+    }
     invalidateTeamCache();
 
     if (mongoose.connection.readyState === 1) {
@@ -1807,7 +2001,10 @@ app.put('/api/admin/team/:id', authenticateToken, validateIdParam, async (req, r
       if (name !== undefined) updateData.name = sanitizeText(name, 100);
       if (role !== undefined) updateData.role = sanitizeText(role, 100);
       if (whatsappNumber !== undefined) updateData.whatsappNumber = sanitizeText(whatsappNumber, 30);
-      if (finalImage !== undefined) updateData.image = finalImage;
+      if (finalImage !== undefined) {
+        updateData.image = finalImage;
+        updateData.imagePublicId = finalPublicId;
+      }
       if (description !== undefined) updateData.description = sanitizeText(description, 1000);
       if (order !== undefined) updateData.order = Math.max(0, parseInt(order) || 0);
       if (isFeatured !== undefined) updateData.isFeatured = Boolean(isFeatured);
@@ -1832,7 +2029,7 @@ app.put('/api/admin/team/:id', authenticateToken, validateIdParam, async (req, r
         ...(name !== undefined && { name: sanitizeText(name, 100) }),
         ...(role !== undefined && { role: sanitizeText(role, 100) }),
         ...(whatsappNumber !== undefined && { whatsappNumber: sanitizeText(whatsappNumber, 30) }),
-        ...(finalImage !== undefined && { image: finalImage }),
+        ...(finalImage !== undefined && { image: finalImage, imagePublicId: finalPublicId }),
         ...(description !== undefined && { description: sanitizeText(description, 1000) }),
         ...(order !== undefined && { order: Math.max(0, parseInt(order) || 0) }),
         ...(isFeatured !== undefined && { isFeatured: Boolean(isFeatured) })
@@ -1851,7 +2048,15 @@ app.delete('/api/admin/team/:id', authenticateToken, validateIdParam, async (req
   try {
     invalidateTeamCache();
     if (mongoose.connection.readyState === 1) {
-      await Team.findByIdAndDelete(req.params.id);
+      const m = await Team.findById(req.params.id);
+      if (m) {
+        if (m.imagePublicId) {
+          await deleteCloudinaryAsset(m.imagePublicId);
+        } else if (m.image) {
+          await deleteCloudinaryAsset(extractPublicIdFromUrl(m.image));
+        }
+        await Team.findByIdAndDelete(req.params.id);
+      }
       return res.json({ success: true, message: 'Team member deleted!' });
     }
 
@@ -1878,13 +2083,16 @@ app.get('/api/admin/whatsapp-contacts', authenticateToken, async (req, res) => {
 app.post('/api/admin/whatsapp-contact', authenticateToken, async (req, res) => {
   try {
     const { name, role, whatsappNumber, image, description } = req.body;
-    const finalImage = saveBase64Image(image, 'team', 'team') || 'https://via.placeholder.com/150';
+    const { imageUrl: finalImage, publicId: finalPublicId } = await saveOrUploadImage(image, 'team', 'team');
+    const assignedImage = finalImage || 'https://via.placeholder.com/150';
+
     if (mongoose.connection.readyState === 1) {
       const contact = new Team({ 
         name: sanitizeText(name, 100), 
         role: sanitizeText(role, 100), 
         whatsappNumber: sanitizeText(whatsappNumber, 30), 
-        image: finalImage, 
+        image: assignedImage, 
+        imagePublicId: finalPublicId || '',
         description: sanitizeText(description, 1000) 
       });
       await contact.save();
@@ -1896,7 +2104,8 @@ app.post('/api/admin/whatsapp-contact', authenticateToken, async (req, res) => {
       name: sanitizeText(name, 100), 
       role: sanitizeText(role, 100), 
       whatsappNumber: sanitizeText(whatsappNumber, 30), 
-      image: finalImage, 
+      image: assignedImage, 
+      imagePublicId: finalPublicId || '',
       description: sanitizeText(description, 1000), 
       createdAt: new Date() 
     };
@@ -1910,7 +2119,15 @@ app.post('/api/admin/whatsapp-contact', authenticateToken, async (req, res) => {
 app.delete('/api/admin/whatsapp-contact/:id', authenticateToken, validateIdParam, async (req, res) => {
   try {
     if (mongoose.connection.readyState === 1) {
-      await Team.findByIdAndDelete(req.params.id);
+      const m = await Team.findById(req.params.id);
+      if (m) {
+        if (m.imagePublicId) {
+          await deleteCloudinaryAsset(m.imagePublicId);
+        } else if (m.image) {
+          await deleteCloudinaryAsset(extractPublicIdFromUrl(m.image));
+        }
+        await Team.findByIdAndDelete(req.params.id);
+      }
     }
     fallbackTeam = fallbackTeam.filter(t => t._id !== req.params.id && t.id !== req.params.id);
     res.json({ message: 'Contact deleted successfully' });
@@ -1970,13 +2187,13 @@ app.get('/api/admin/review', authenticateToken, getReviewsHandler);
 // Add Review (Protected)
 app.post('/api/admin/review', authenticateToken, async (req, res) => {
   try {
-    const { name, role, rating, text, image, avatar, clientName, clientRole, comment, testimonial } = req.body;
+    const { name, role, rating, text, image, avatar, clientName, clientRole, comment, testimonial, isFeatured } = req.body;
     const cleanName = sanitizeText(name || clientName || '', 100);
     const cleanText = sanitizeText(text || testimonial || comment || '', 1500);
     const cleanRole = sanitizeText(role || clientRole || 'Client', 100);
     const rawRating = parseInt(rating);
     const cleanRating = isNaN(rawRating) ? 5 : Math.min(5, Math.max(1, rawRating));
-    const finalImage = saveBase64Image(image || avatar, 'reviews', 'review') || '';
+    const { imageUrl: finalImage, publicId: finalPublicId } = await saveOrUploadImage(image || avatar, 'reviews', 'review');
 
     // Validation
     if (!cleanName || !cleanText) {
@@ -1992,7 +2209,11 @@ app.post('/api/admin/review', authenticateToken, async (req, res) => {
         role: cleanRole,
         rating: cleanRating,
         text: cleanText,
-        image: finalImage
+        testimonial: cleanText,
+        image: finalImage || '',
+        avatar: finalImage || '',
+        imagePublicId: finalPublicId || '',
+        isFeatured: Boolean(isFeatured)
       });
 
       await review.save();
@@ -2012,7 +2233,11 @@ app.post('/api/admin/review', authenticateToken, async (req, res) => {
       role: cleanRole,
       rating: cleanRating,
       text: cleanText,
-      image: finalImage,
+      testimonial: cleanText,
+      image: finalImage || '',
+      avatar: finalImage || '',
+      imagePublicId: finalPublicId || '',
+      isFeatured: Boolean(isFeatured),
       createdAt: new Date()
     };
     fallbackReviews.unshift(newRev);
@@ -2035,20 +2260,34 @@ app.post('/api/admin/review', authenticateToken, async (req, res) => {
 // Update Review (Protected)
 app.put('/api/admin/review/:id', authenticateToken, validateIdParam, async (req, res) => {
   try {
-    const { name, role, rating, text, image, avatar, clientName, clientRole, comment } = req.body;
+    const { name, role, rating, text, image, avatar, clientName, clientRole, comment, isFeatured } = req.body;
     const finalName = name || clientName;
     const finalText = text || comment;
     const finalRole = role || clientRole;
     const finalRating = rating !== undefined ? Math.min(5, Math.max(1, parseInt(rating) || 5)) : undefined;
-    const finalImage = (image !== undefined || avatar !== undefined) ? saveBase64Image(image || avatar, 'reviews', 'review') : undefined;
+    
+    let finalImage, finalPublicId;
+    if (image !== undefined || avatar !== undefined) {
+      const imgRes = await saveOrUploadImage(image || avatar, 'reviews', 'review');
+      finalImage = imgRes.imageUrl;
+      finalPublicId = imgRes.publicId;
+    }
 
     if (mongoose.connection.readyState === 1) {
       const updateData = {};
       if (finalName !== undefined) updateData.name = sanitizeText(finalName, 100);
       if (finalRole !== undefined) updateData.role = sanitizeText(finalRole, 100);
       if (finalRating !== undefined) updateData.rating = finalRating;
-      if (finalText !== undefined) updateData.text = sanitizeText(finalText, 1500);
-      if (finalImage !== undefined) updateData.image = finalImage;
+      if (finalText !== undefined) {
+        updateData.text = sanitizeText(finalText, 1500);
+        updateData.testimonial = sanitizeText(finalText, 1500);
+      }
+      if (finalImage !== undefined) {
+        updateData.image = finalImage;
+        updateData.avatar = finalImage;
+        updateData.imagePublicId = finalPublicId;
+      }
+      if (isFeatured !== undefined) updateData.isFeatured = Boolean(isFeatured);
 
       const review = await Review.findByIdAndUpdate(
         req.params.id,
@@ -2070,8 +2309,9 @@ app.put('/api/admin/review/:id', authenticateToken, validateIdParam, async (req,
         ...(finalName !== undefined && { name: sanitizeText(finalName, 100) }),
         ...(finalRole !== undefined && { role: sanitizeText(finalRole, 100) }),
         ...(finalRating !== undefined && { rating: finalRating }),
-        ...(finalText !== undefined && { text: sanitizeText(finalText, 1500) }),
-        ...(finalImage !== undefined && { image: finalImage })
+        ...(finalText !== undefined && { text: sanitizeText(finalText, 1500), testimonial: sanitizeText(finalText, 1500) }),
+        ...(finalImage !== undefined && { image: finalImage, avatar: finalImage, imagePublicId: finalPublicId }),
+        ...(isFeatured !== undefined && { isFeatured: Boolean(isFeatured) })
       };
       return res.json({ success: true, message: 'Review updated!', review: fallbackReviews[idx] });
     }
@@ -2087,7 +2327,15 @@ app.put('/api/admin/review/:id', authenticateToken, validateIdParam, async (req,
 app.delete('/api/admin/review/:id', authenticateToken, validateIdParam, async (req, res) => {
   try {
     if (mongoose.connection.readyState === 1) {
-      await Review.findByIdAndDelete(req.params.id);
+      const r = await Review.findById(req.params.id);
+      if (r) {
+        if (r.imagePublicId) {
+          await deleteCloudinaryAsset(r.imagePublicId);
+        } else if (r.image || r.avatar) {
+          await deleteCloudinaryAsset(extractPublicIdFromUrl(r.image || r.avatar));
+        }
+        await Review.findByIdAndDelete(req.params.id);
+      }
       return res.json({ success: true, message: 'Review deleted!' });
     }
 

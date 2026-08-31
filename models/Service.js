@@ -15,6 +15,14 @@ const ServiceSchema = new mongoose.Schema({
     type: String,
     default: 'code' // code, mobile, brain, cloud, shield, palette
   },
+  image: {
+    type: String,
+    default: ''
+  },
+  imagePublicId: {
+    type: String,
+    default: ''
+  },
   price: {
     type: String,
     default: ''

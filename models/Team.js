@@ -22,6 +22,10 @@ const TeamSchema = new mongoose.Schema({
     type: String,
     default: 'https://via.placeholder.com/150'
   },
+  imagePublicId: {
+    type: String,
+    default: ''
+  },
   order: {
     type: Number,
     default: 0
