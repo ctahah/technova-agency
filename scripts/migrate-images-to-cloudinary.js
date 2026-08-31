@@ -1,34 +1,37 @@
-require('dotenv').config();
+// Pre-sanitize CLOUDINARY_URL before require to prevent module crash
+let parsedCloudName = '';
+let parsedApiKey = '';
+let parsedApiSecret = '';
+
+if (process.env.CLOUDINARY_URL) {
+  let clean = String(process.env.CLOUDINARY_URL).trim();
+  clean = clean.replace(/^['"]+|['"]+$/g, '').trim();
+  if (clean.startsWith('cloudinary://')) {
+    process.env.CLOUDINARY_URL = clean;
+    const match = clean.match(/^cloudinary:\/\/([^:]+):([^@]+)@([^/?#]+)/i);
+    if (match) {
+      parsedApiKey = match[1].trim();
+      parsedApiSecret = match[2].trim();
+      parsedCloudName = match[3].trim();
+    }
+  } else {
+    delete process.env.CLOUDINARY_URL;
+  }
+}
+
 const path = require('path');
 const fs = require('fs');
 const mongoose = require('mongoose');
 const cloudinary = require('cloudinary').v2;
 
-// Robust Cloudinary configuration
-const parseAndConfigureCloudinary = () => {
-  const rawUrl = process.env.CLOUDINARY_URL;
-  if (!rawUrl || typeof rawUrl !== 'string') return false;
-  const clean = rawUrl.trim().replace(/^['"]|['"]$/g, '');
-  const match = clean.match(/^cloudinary:\/\/([^:]+):([^@]+)@([^/?#]+)/i);
-  if (match) {
-    cloudinary.config({
-      api_key: match[1].trim(),
-      api_secret: match[2].trim(),
-      cloud_name: match[3].trim(),
-      secure: true
-    });
-    return true;
-  }
-  try {
-    process.env.CLOUDINARY_URL = clean;
-    cloudinary.config(true);
-    cloudinary.config({ secure: true });
-    return Boolean(cloudinary.config().cloud_name);
-  } catch (e) {
-    return false;
-  }
-};
-parseAndConfigureCloudinary();
+if (parsedCloudName && parsedApiKey && parsedApiSecret) {
+  cloudinary.config({
+    cloud_name: parsedCloudName,
+    api_key: parsedApiKey,
+    api_secret: parsedApiSecret,
+    secure: true
+  });
+}
 
 async function runMigration() {
   const isDryRun = process.argv.includes('--dry-run') || process.argv.includes('--scan') || !process.env.CLOUDINARY_URL;

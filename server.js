@@ -1,4 +1,42 @@
 require('dotenv').config();
+
+// -----------------------------------------------------------------------------
+// PRE-SANITIZE CLOUDINARY_URL ENVIRONMENT VARIABLE
+// Prevents Cloudinary SDK v2 from throwing an unhandled exception on module require
+// if surrounding quotes or whitespace are present in the environment variable.
+// -----------------------------------------------------------------------------
+let sanitizedCloudinaryUrl = '';
+let parsedCloudName = '';
+let parsedApiKey = '';
+let parsedApiSecret = '';
+let cloudinaryConfigError = null;
+
+if (process.env.CLOUDINARY_URL) {
+  try {
+    let raw = String(process.env.CLOUDINARY_URL).trim();
+    raw = raw.replace(/^['"]+|['"]+$/g, '').trim();
+
+    if (raw.startsWith('cloudinary://')) {
+      process.env.CLOUDINARY_URL = raw;
+      sanitizedCloudinaryUrl = raw;
+      const match = raw.match(/^cloudinary:\/\/([^:]+):([^@]+)@([^/?#]+)/i);
+      if (match) {
+        parsedApiKey = match[1].trim();
+        parsedApiSecret = match[2].trim();
+        parsedCloudName = match[3].trim();
+      }
+    } else {
+      cloudinaryConfigError = 'Invalid CLOUDINARY_URL format in environment: URL must begin with "cloudinary://"';
+      console.error(`❌ ${cloudinaryConfigError}`);
+      // Unset invalid variable to prevent Cloudinary SDK from crashing on require
+      delete process.env.CLOUDINARY_URL;
+    }
+  } catch (envErr) {
+    cloudinaryConfigError = envErr.message;
+    delete process.env.CLOUDINARY_URL;
+  }
+}
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -22,59 +60,52 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('⚠️ Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
-// Robust Cloudinary persistent storage configuration
-const parseAndConfigureCloudinary = () => {
-  const rawUrl = process.env.CLOUDINARY_URL;
-  if (!rawUrl || typeof rawUrl !== 'string') {
-    if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+// Explicit Cloudinary Configuration
+const initCloudinaryConfig = () => {
+  if (parsedCloudName && parsedApiKey && parsedApiSecret) {
+    try {
+      cloudinary.config({
+        cloud_name: parsedCloudName,
+        api_key: parsedApiKey,
+        api_secret: parsedApiSecret,
+        secure: true
+      });
+      console.log(`☁️ Cloudinary persistent storage configured for cloud: "${parsedCloudName}"`);
+      return true;
+    } catch (err) {
+      console.error('❌ Cloudinary explicit config error:', err.message);
+      return false;
+    }
+  }
+
+  if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+    try {
       cloudinary.config({
         cloud_name: String(process.env.CLOUDINARY_CLOUD_NAME).trim(),
         api_key: String(process.env.CLOUDINARY_API_KEY).trim(),
         api_secret: String(process.env.CLOUDINARY_API_SECRET).trim(),
         secure: true
       });
+      console.log(`☁️ Cloudinary persistent storage configured for cloud: "${process.env.CLOUDINARY_CLOUD_NAME.trim()}"`);
       return true;
+    } catch (err) {
+      console.error('❌ Cloudinary explicit config error:', err.message);
+      return false;
     }
-    return false;
   }
 
-  const clean = rawUrl.trim().replace(/^['"]|['"]$/g, '');
-  const match = clean.match(/^cloudinary:\/\/([^:]+):([^@]+)@([^/?#]+)/i);
-  if (match) {
-    cloudinary.config({
-      api_key: match[1].trim(),
-      api_secret: match[2].trim(),
-      cloud_name: match[3].trim(),
-      secure: true
-    });
-    console.log(`☁️ Cloudinary persistent storage configured for cloud: "${match[3].trim()}"`);
-    return true;
-  }
-
-  try {
-    process.env.CLOUDINARY_URL = clean;
-    cloudinary.config(true);
-    cloudinary.config({ secure: true });
-    const cfg = cloudinary.config();
-    if (cfg.cloud_name && cfg.api_key) {
-      console.log(`☁️ Cloudinary persistent storage configured for cloud: "${cfg.cloud_name}"`);
-      return true;
-    }
-  } catch (err) {
-    console.error('⚠️ Cloudinary configuration error:', err.message);
-  }
   return false;
 };
 
-// Initialize Cloudinary on server start
-parseAndConfigureCloudinary();
+// Initialize Cloudinary immediately after require
+initCloudinaryConfig();
 
 const isCloudinaryActive = () => {
   const cfg = cloudinary.config();
-  if (cfg.cloud_name && cfg.api_key && cfg.api_secret) {
+  if (cfg && cfg.cloud_name && cfg.api_key && cfg.api_secret) {
     return true;
   }
-  return parseAndConfigureCloudinary();
+  return initCloudinaryConfig();
 };
 
 const extractPublicIdFromUrl = (url) => {
@@ -238,7 +269,10 @@ const saveOrUploadImage = async (dataString, subfolder = 'common', prefix = 'img
     const uniqueName = `${safePrefix}-${Date.now()}-${crypto.randomBytes(6).toString('hex')}`;
 
     // 1. If Cloudinary is configured/active -> STRICT CLOUDINARY PERSISTENCE
-    if (isCloudinaryActive() || process.env.CLOUDINARY_URL) {
+    if (isCloudinaryActive() || sanitizedCloudinaryUrl || process.env.CLOUDINARY_URL) {
+      if (!isCloudinaryActive()) {
+        throw new Error(cloudinaryConfigError || 'Cloudinary credentials are not properly configured in environment.');
+      }
       try {
         const cloudResult = await uploadBufferToCloudinary(buffer, safeFolder, uniqueName);
         console.log(`☁️ Uploaded base64 image to Cloudinary: ${cloudResult.secure_url}`);
@@ -1402,7 +1436,16 @@ app.post('/api/admin/upload-image', authenticateToken, (req, res) => {
       const folder = sanitizeSubfolder(req.body?.folder || req.query?.folder || 'team');
 
       // Upload to Cloudinary if configured -> STRICT CLOUDINARY PERSISTENCE
-      if (isCloudinaryActive() || process.env.CLOUDINARY_URL) {
+      if (isCloudinaryActive() || sanitizedCloudinaryUrl || process.env.CLOUDINARY_URL) {
+        if (!isCloudinaryActive()) {
+          if (fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+          }
+          return res.status(500).json({
+            success: false,
+            message: cloudinaryConfigError || 'Cloudinary persistent storage is not properly configured in environment.'
+          });
+        }
         try {
           const cloudResult = await uploadBufferToCloudinary(buffer, folder, req.file.filename);
           if (fs.existsSync(req.file.path)) {
