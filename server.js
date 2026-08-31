@@ -22,21 +22,59 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('⚠️ Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
-// Configure Cloudinary persistent storage from CLOUDINARY_URL
-if (process.env.CLOUDINARY_URL) {
-  try {
-    cloudinary.config(true);
+// Robust Cloudinary persistent storage configuration
+const parseAndConfigureCloudinary = () => {
+  const rawUrl = process.env.CLOUDINARY_URL;
+  if (!rawUrl || typeof rawUrl !== 'string') {
+    if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+      cloudinary.config({
+        cloud_name: String(process.env.CLOUDINARY_CLOUD_NAME).trim(),
+        api_key: String(process.env.CLOUDINARY_API_KEY).trim(),
+        api_secret: String(process.env.CLOUDINARY_API_SECRET).trim(),
+        secure: true
+      });
+      return true;
+    }
+    return false;
+  }
+
+  const clean = rawUrl.trim().replace(/^['"]|['"]$/g, '');
+  const match = clean.match(/^cloudinary:\/\/([^:]+):([^@]+)@([^/?#]+)/i);
+  if (match) {
     cloudinary.config({
+      api_key: match[1].trim(),
+      api_secret: match[2].trim(),
+      cloud_name: match[3].trim(),
       secure: true
     });
-    console.log('☁️ Cloudinary persistent image storage configured from CLOUDINARY_URL');
+    console.log(`☁️ Cloudinary persistent storage configured for cloud: "${match[3].trim()}"`);
+    return true;
+  }
+
+  try {
+    process.env.CLOUDINARY_URL = clean;
+    cloudinary.config(true);
+    cloudinary.config({ secure: true });
+    const cfg = cloudinary.config();
+    if (cfg.cloud_name && cfg.api_key) {
+      console.log(`☁️ Cloudinary persistent storage configured for cloud: "${cfg.cloud_name}"`);
+      return true;
+    }
   } catch (err) {
     console.error('⚠️ Cloudinary configuration error:', err.message);
   }
-}
+  return false;
+};
+
+// Initialize Cloudinary on server start
+parseAndConfigureCloudinary();
 
 const isCloudinaryActive = () => {
-  return Boolean(process.env.CLOUDINARY_URL || (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY));
+  const cfg = cloudinary.config();
+  if (cfg.cloud_name && cfg.api_key && cfg.api_secret) {
+    return true;
+  }
+  return parseAndConfigureCloudinary();
 };
 
 const extractPublicIdFromUrl = (url) => {
@@ -199,8 +237,8 @@ const saveOrUploadImage = async (dataString, subfolder = 'common', prefix = 'img
     const ext = detectedType === 'jpeg' ? 'jpg' : detectedType;
     const uniqueName = `${safePrefix}-${Date.now()}-${crypto.randomBytes(6).toString('hex')}`;
 
-    // 1. Try Cloudinary first if active
-    if (isCloudinaryActive()) {
+    // 1. If Cloudinary is configured/active -> STRICT CLOUDINARY PERSISTENCE
+    if (isCloudinaryActive() || process.env.CLOUDINARY_URL) {
       try {
         const cloudResult = await uploadBufferToCloudinary(buffer, safeFolder, uniqueName);
         console.log(`☁️ Uploaded base64 image to Cloudinary: ${cloudResult.secure_url}`);
@@ -209,11 +247,12 @@ const saveOrUploadImage = async (dataString, subfolder = 'common', prefix = 'img
           publicId: cloudResult.public_id
         };
       } catch (cloudErr) {
-        console.error('⚠️ Cloudinary upload failed, using local storage fallback:', cloudErr.message);
+        console.error('❌ Cloudinary upload failed:', cloudErr.message);
+        throw new Error(`Cloudinary persistent upload failed: ${cloudErr.message}`);
       }
     }
 
-    // 2. Fallback to local /uploads/ storage
+    // 2. Local fallback ONLY when Cloudinary is completely unconfigured (offline development mode)
     const targetDir = path.resolve(uploadsRootDir, safeFolder);
     if (!targetDir.startsWith(uploadsRootDir)) return { imageUrl: '', publicId: '' };
     if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
@@ -1362,8 +1401,8 @@ app.post('/api/admin/upload-image', authenticateToken, (req, res) => {
 
       const folder = sanitizeSubfolder(req.body?.folder || req.query?.folder || 'team');
 
-      // Upload to Cloudinary if configured
-      if (isCloudinaryActive()) {
+      // Upload to Cloudinary if configured -> STRICT CLOUDINARY PERSISTENCE
+      if (isCloudinaryActive() || process.env.CLOUDINARY_URL) {
         try {
           const cloudResult = await uploadBufferToCloudinary(buffer, folder, req.file.filename);
           if (fs.existsSync(req.file.path)) {
@@ -1378,11 +1417,18 @@ app.post('/api/admin/upload-image', authenticateToken, (req, res) => {
             imagePublicId: cloudResult.public_id
           });
         } catch (cloudErr) {
-          console.error('Cloudinary upload error:', cloudErr.message);
-          // Fall through to local fallback if Cloudinary fails
+          if (fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+          }
+          console.error('❌ Cloudinary upload error:', cloudErr.message);
+          return res.status(500).json({
+            success: false,
+            message: `Cloudinary persistent storage upload failed: ${cloudErr.message}`
+          });
         }
       }
 
+      // Local fallback ONLY when Cloudinary is completely unconfigured (offline development mode)
       const imageUrl = `/uploads/${folder}/${req.file.filename}`;
       return res.json({ 
         success: true, 
