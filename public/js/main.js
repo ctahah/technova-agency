@@ -87,32 +87,20 @@ function initNavbar() {
     document.body.appendChild(drawer);
   }
 
-  // Close drawer on click outside
-  document.addEventListener('click', function(e) {
-    const toggleBtns = document.querySelectorAll('.mobile-menu-toggle');
-    let clickedToggle = false;
-    toggleBtns.forEach(tb => {
-      if (tb.contains(e.target)) clickedToggle = true;
-    });
+    // Close drawer on click outside
+    document.addEventListener('click', function(e) {
+      const toggleBtns = document.querySelectorAll('.mobile-menu-toggle');
+      let clickedToggle = false;
+      toggleBtns.forEach(tb => {
+        if (tb.contains(e.target)) clickedToggle = true;
+      });
 
-    if (drawer && !drawer.contains(e.target) && !clickedToggle) {
-      drawer.classList.remove('active');
-      toggleBtns.forEach(tb => { tb.innerHTML = '☰'; });
-    }
-  });
-
-  // Wire up mobile WhatsApp button in drawer
-  const mobileWaBtn = document.getElementById('mobileWaBtn');
-  if (mobileWaBtn) {
-    mobileWaBtn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      const anyWaBtn = document.querySelector('.navbar .btn-whatsapp') || document.querySelector('.mobile-header-wa');
-      if (anyWaBtn) {
-        anyWaBtn.click();
+      if (drawer && !drawer.contains(e.target) && !clickedToggle) {
+        drawer.classList.remove('active');
+        toggleBtns.forEach(tb => { tb.innerHTML = '☰'; });
       }
     });
   }
-}
 
 
 // ============================================
@@ -168,30 +156,41 @@ async function loadWhatsAppDropdown() {
     document.body.appendChild(dropdown);
   }
 
-  // Bind click handler to all WhatsApp buttons across the DOM
-  const allWaButtons = document.querySelectorAll('.btn-whatsapp');
-  allWaButtons.forEach(btn => {
-    if (btn.dataset.waAttached) return;
-    btn.dataset.waAttached = 'true';
+  // Global click handler for WhatsApp buttons & click outside
+  if (!window._waGlobalClickAttached) {
+    window._waGlobalClickAttached = true;
 
-    btn.addEventListener('click', function(e) {
-      e.stopPropagation();
-      dropdown.classList.toggle('show');
-      dropdown.classList.toggle('active');
-    });
-  });
+    document.addEventListener('click', function(e) {
+      const waBtn = e.target.closest('.btn-whatsapp, .mobile-header-wa, #whatsappBtn, #whatsappDropdownBtn, #mobileWaBtn');
+      const curDropdown = document.getElementById('whatsappDropdown') || document.getElementById('whatsappMenu') || document.querySelector('.whatsapp-dropdown');
+      
+      if (waBtn) {
+        e.preventDefault();
+        e.stopPropagation();
 
-  // Close on outside click
-  document.addEventListener('click', function(e) {
-    let clickedWaBtn = false;
-    allWaButtons.forEach(btn => {
-      if (btn.contains(e.target)) clickedWaBtn = true;
+        // Close mobile nav drawer if open
+        const drawer = document.querySelector('.mobile-nav-drawer');
+        if (drawer && drawer.classList.contains('active')) {
+          drawer.classList.remove('active');
+          document.querySelectorAll('.mobile-menu-toggle').forEach(tb => { tb.innerHTML = '☰'; });
+        }
+
+        if (curDropdown) {
+          curDropdown.classList.toggle('show');
+          curDropdown.classList.toggle('active');
+        }
+        return;
+      }
+
+      // Close dropdown when clicking outside
+      if (curDropdown && curDropdown.classList.contains('show')) {
+        if (!curDropdown.contains(e.target)) {
+          curDropdown.classList.remove('show');
+          curDropdown.classList.remove('active');
+        }
+      }
     });
-    if (!dropdown.contains(e.target) && !clickedWaBtn) {
-      dropdown.classList.remove('show');
-      dropdown.classList.remove('active');
-    }
-  });
+  }
 
   // Fetch data via singleton
   try {
